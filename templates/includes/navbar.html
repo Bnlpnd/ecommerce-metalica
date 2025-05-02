@@ -1,0 +1,61 @@
+{% load static %}
+
+<div class="container">
+  <header
+    class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom"
+  >
+    <div class="col-md-3 mb-2 mb-md-0">
+      <a href="/" class="d-inline-flex link-body-emphasis text-decoration-none">
+        <!--<svg
+          class="bi"
+          width="40"
+          height="32"
+          role="img"
+          aria-label="Bootstrap"
+        >
+          <use xlink:href="#bootstrap" />
+        </svg>-->
+        <img
+          src="{% static 'images/santaana-sf2.png' %}"
+          width="190"
+          height="140"
+          class="img-fluid rounded-top"
+          alt="santaana"
+        />
+      </a>
+    </div>
+
+    <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
+      <li><a href="#" class="nav-link px-2 text-secondary">Inicio</a></li>
+      <li><a href="#" class="nav-link px-2 text-secondary">Álbum</a></li>
+      <li>
+        <a
+          href="##"
+          class="nav-link px-2 text-secondary text-underline-opacity-25 text-underline-opacity-100-hover"
+          >Agendar cita
+        </a>
+      </li>
+    </ul>
+
+    <div class="col-md-3 text-end">
+      {% if user.is_authenticated %}
+      <a class="me-3 py-2 link-body-emphasis text-decoration-none" href="#"
+        >Hola, <em>{{ user.first_name }}</em>
+      </a>
+      <a
+        class="me-3 py-2 link-body-emphasis text-decoration-none"
+        href="{% url 'logout' %}"
+        >Cerrar sesión
+      </a>
+
+      {% else %}
+      <a class="btn btn-outline-primary me-2" href="{% url 'login' %}"
+        >Iniciar sesión
+      </a>
+      <a class="btn btn-primary me-2" href="{% url 'register' %}"
+        >Registrarse
+      </a>
+      {% endif %}
+    </div>
+  </header>
+</div>

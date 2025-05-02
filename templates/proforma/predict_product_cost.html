@@ -1,0 +1,14 @@
+<!-- /templates/proforma/predict_product_cost.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Predict Product Cost</title>
+  </head>
+  <body>
+    <h1>Cotizar costo del producto</h1>
+    <form method="post">
+      {% csrf_token %} {{ form.as_p }}
+      <button type="submit">Cotizar</button>
+    </form>
+  </body>
+</html>

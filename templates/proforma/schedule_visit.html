@@ -1,0 +1,13 @@
+{% extends "base/base.html"%} {% block start %}
+
+<section class="section-content padding-y bg">
+  <div class="container">
+    <h1>Solicita una visita</h1>
+    <form method="post">
+      {% csrf_token %} {{ form.as_p }}
+      <button type="submit">Enviar</button>
+    </form>
+  </div>
+</section>
+
+{% endblock %}

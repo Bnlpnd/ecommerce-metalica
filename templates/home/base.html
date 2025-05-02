@@ -1,0 +1,33 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Estructura Metálica Santa Ana</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    <!-- Bootstrap CSS v5.2.1 -->
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
+  </head>
+
+  <body>
+    <!-- includes/navbar.html-->
+    {% include 'includes/navbar.html' %}
+    <!-- home.html-->
+    {% block content %} {% endblock %}
+    <!-- login.html-->
+    {% block start %} {% endblock %}
+    <!-- includes/footer.html-->
+    {% include 'includes/footer.html' %}
+
+    <!-- Bootstrap JavaScript Libraries -->
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+  </body>
+</html>

@@ -1,0 +1,70 @@
+{% extends "home/base.html" %} {% block start %}
+
+<!--padding-y  style="min-height: 70vh"-->
+
+<section class="section-content w-100 m-auto" style="min-height: 65vh">
+  <!-- ============================ COMPONENT LOGIN   ================================= -->
+  <div class="card mx-auto" style="max-width: 380px">
+    <div class="card-body">
+      <h4 class="card-title mb-4 h3 text-center">Iniciar Sesión</h4>
+      <form action="{% url 'login' %}" method="POST">
+        {% csrf_token %} {% include "includes/alerts.html" %}
+
+        <div class="form-floating">
+          <input
+            name="email"
+            type="email"
+            class="form-control"
+            id="email"
+            placeholder="name@example.com"
+          />
+          <label for="floatingInput">Email</label>
+        </div>
+        <div class="form-floating mt-1">
+          <input
+            name="password"
+            type="password"
+            class="form-control"
+            id="password"
+            placeholder="Password"
+          />
+          <label for="floatingPassword">Contraseña</label>
+        </div>
+
+        <div class="form-check text-start my-2">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            value="remember-me"
+            id="flexCheckDefault"
+          />
+          <label class="form-check-label" for="flexCheckDefault">
+            Recordarme
+          </label>
+        </div>
+
+        <!-- form-group form-check .// -->
+        <div class="form-group">
+          <button class="btn btn-primary w-100 py-2" type="submit">
+            Iniciar Sesión
+          </button>
+          <!--
+          <button type="submit" class="btn btn-primary btn-block">Login</button>-->
+        </div>
+        <!-- form-group// -->
+      </form>
+    </div>
+    <!-- card-body.// -->
+  </div>
+  <!-- card .// -->
+  <p class="text-center mt-3">
+    ¿No tienes una cuenta? <a href="{% url 'register' %}">Registrar</a>
+  </p>
+  <p class="text-center mt-3">
+    ¿Olvidaste tu contraseña?
+    <a href="{% url 'forgotPassword' %}">Cambiar contraseña</a>
+  </p>
+  <!-- ============================ COMPONENT LOGIN  END.// ================================= -->
+</section>
+
+{% endblock %}

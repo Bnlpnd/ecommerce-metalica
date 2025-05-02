@@ -1,0 +1,80 @@
+{% extends "home/base.html" %} {% block start %}
+
+<section class="section-conten w-100 m-auto" style="min-height: 65vh">
+  <!-- ============================ COMPONENT LOGIN   ================================= -->
+  <div class="card mx-auto" style="max-width: 380px">
+    <div class="card-body">
+      <h4 class="card-title mb-4 h3 text-center">Registrar</h4>
+      <form action="{% url 'register' %}" method="POST">
+        {% csrf_token %} {% include "includes/alerts.html" %}
+        <!--
+        <div class="form-group">
+          <input
+            class="form-control"
+            required
+            placeholder="First Name"
+            name="first_name"
+            type="text"
+          />
+        </div>-->
+        <div class="form-floating">
+          <input
+            name="first_name"
+            type="text"
+            class="form-control"
+            id="first_name"
+            placeholder="nombre"
+          />
+          <label for="floatingInput">Nombre</label>
+        </div>
+        <div class="form-floating mt-1">
+          <input
+            name="last_name"
+            type="text"
+            class="form-control"
+            id="last_name"
+            placeholder="apellido"
+          />
+          <label for="floatingInput">Apellido Paterno</label>
+        </div>
+        <div class="form-floating mt-1">
+          <input
+            name="email"
+            type="email"
+            class="form-control"
+            id="email"
+            placeholder="name@example.com"
+          />
+          <label for="floatingInput">Email</label>
+        </div>
+        <div class="form-floating mt-1">
+          <input
+            name="password"
+            type="password"
+            class="form-control"
+            id="password"
+            placeholder="Password"
+          />
+          <label for="floatingPassword">Contraseña</label>
+        </div>
+
+        <div class="form-group mt-3">
+          <button type="submit" class="btn btn-primary w-100 py-2">
+            Registrar
+          </button>
+        </div>
+        <!-- form-group// -->
+      </form>
+    </div>
+    <!-- card-body.// -->
+  </div>
+  <!-- card .// -->
+
+  <p class="text-center mt-4">
+    ¿Tienes una cuenta? <a href="../login">Iniciar Sesión</a>
+  </p>
+
+  <!-- ============================ COMPONENT LOGIN  END.// ================================= -->
+</section>
+
+{% endblock %}
