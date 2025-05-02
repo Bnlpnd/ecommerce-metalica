@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate , login as auth_login, logout
 from django.http import HttpResponseRedirect,HttpResponse
 # Create your views here.
 from .models import Profile, Account
-from base.emails  import send_account_activation_email
+from base.emails  import send_account_activation_email, send_password_reset_email
 from base.tokens import account_activation_token
 
 
@@ -57,7 +57,7 @@ def register(request):
         user_obj = User.objects.filter(username = email).first()
 
         if user_obj:
-            messages.warning(request, 'Email is already taken.')
+            messages.warning(request, 'El correo ya se encuentra registrado.')
             #return HttpResponseRedirect(request.path_info)
             return redirect('register')
 
@@ -111,24 +111,41 @@ def activate_email(request , email_token):
 def logout_view(request):
     logout(request)
     return redirect('login')
+    
+def reset_password(request, email_token=None):
+    if request.method == 'GET':
+        try:
+            profile = Profile.objects.get(email_token=email_token)
+            request.session['uid'] = profile.user.id
+            return render(request, 'accounts/reset_password.html')
+        except Profile.DoesNotExist:
+            messages.error(request, 'El enlace es inválido o ha expirado.')
+            return redirect('forgot_password')
 
-def resetPassword(request):
-    if request.method == 'POST':
+    elif request.method == 'POST':
         password = request.POST['password']
         confirm_password = request.POST['confirm_password']
+        
+        print(f"password: {password}")
+        print(f"confirm_password: {confirm_password}")
+        print(f"email_token: {email_token}")
 
         if password == confirm_password:
             uid = request.session.get('uid')
-            user = Account.objects.get(pk=uid)
+            print(f"uid - reset: {uid}")
+            user = User.objects.get(pk=uid)
             user.set_password(password)
             user.save()
             messages.success(request, 'La contraseña se actualizó correctamente')
             return redirect('login')
         else:
             messages.error(request, 'La contraseña de confirmación no concuerda')
-            return redirect('resetPassword')
-    else:
-        return render(request, 'accounts/resetPassword.html')
+            return redirect('reset_password')
+    
+    return render(request, 'accounts/reset_password.html', {
+        'email_token': email_token
+    })
+
 
 @login_required(login_url='login_view')
 def change_password(request):
@@ -156,5 +173,30 @@ def change_password(request):
 
     return render(request, 'accounts/change_password.html')
 
-def forgotPassword(request):
+
+def forgot_password(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        user = User.objects.filter(username=email).first()
+
+        if not user:
+            messages.error(request, 'No existe una cuenta registrada con este correo.')
+            return redirect('forgot_password')
+
+        profile = Profile.objects.filter(user=user).first()
+        if not profile:
+            messages.error(request, 'No se encontró el perfil del usuario.')
+            return redirect('forgot_password')
+
+        # Generar nuevo token con el sistema existente
+        token = account_activation_token.make_token(user)
+        profile.email_token = token
+        profile.save()
+
+        # Enviar correo con enlace de recuperación
+        send_password_reset_email(user, token)
+
+        messages.success(request, 'Se ha enviado un correo con el enlace para restablecer tu contraseña.')
+        return redirect('login')
+
     return render(request, 'accounts/forgot_password.html')

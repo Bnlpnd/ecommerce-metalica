@@ -24,3 +24,19 @@ def send_account_activation_email(user_obj, token):
     print(f"Sending email to {user_obj.email}") 
 
     send_mail(subject, message, sender_email, recipient_list)
+    
+    
+def send_password_reset_email(user_obj, token):
+    if not isinstance(user_obj, User):
+        raise ValueError("Expected a User object but got something else")
+
+    reset_link = settings.BASE_URL + reverse('reset_password', args=[token])
+    subject = 'Restablecimiento de contraseña'
+    message = f'Hola,\nHemos recibido una solicitud para restablecer tu contraseña.\n\nHaz clic en el siguiente enlace para continuar:\n{reset_link}\n\nSi no solicitaste este cambio, puedes ignorar este correo.\n\nGracias,\nTu equipo de Santa Ana.'
+    sender_email = settings.EMAIL_HOST_USER
+
+    recipient_list = [user_obj.email]
+
+    print(f"Enviando correo de restablecimiento a {user_obj.email}")
+
+    send_mail(subject, message, sender_email, recipient_list)
