@@ -4,6 +4,7 @@ from accounts.views import login_view, register , activate_email,logout_view
 from . import views
 
 urlpatterns = [
+   # usuario
    path('login/' , login_view , name="login" ),
    path('register/' , register , name="register"),
    path('activate/<email_token>/' , activate_email , name="activate"),
@@ -13,4 +14,5 @@ urlpatterns = [
    path('change_password/', views.change_password, name='change_password'),
    path('forgot_password/', views.forgot_password, name='forgot_password'),
    path('reset_password/<email_token>/', views.reset_password, name='reset_password')
+   
 ]

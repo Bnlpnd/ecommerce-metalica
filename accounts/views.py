@@ -146,7 +146,6 @@ def reset_password(request, email_token=None):
         'email_token': email_token
     })
 
-
 @login_required(login_url='login_view')
 def change_password(request):
     if request.method == 'POST':
@@ -173,8 +172,8 @@ def change_password(request):
 
     return render(request, 'accounts/change_password.html')
 
-
 def forgot_password(request):
+
     if request.method == 'POST':
         email = request.POST.get('email')
         user = User.objects.filter(username=email).first()
@@ -200,3 +199,4 @@ def forgot_password(request):
         return redirect('login')
 
     return render(request, 'accounts/forgot_password.html')
+
