@@ -26,13 +26,17 @@
     </div>
 
     <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
-      <li><a href="#" class="nav-link px-2 text-secondary">Inicio</a></li>
-      <li><a href="#" class="nav-link px-2 text-secondary">Álbum</a></li>
+      <li><a href="/" class="nav-link px-2 text-secondary">Inicio</a></li>
+      <li>
+        <a href="{% url 'product' %}" class="nav-link px-2 text-secondary"
+          >Galería</a
+        >
+      </li>
       <li>
         <a
           href="##"
           class="nav-link px-2 text-secondary text-underline-opacity-25 text-underline-opacity-100-hover"
-          >Agendar cita
+          >Cotizar
         </a>
       </li>
     </ul>

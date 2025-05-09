@@ -1,4 +1,3 @@
-
 from django.db import models
 from django.contrib.auth.models import User, AbstractBaseUser, BaseUserManager
 from base.models import BaseModel
@@ -7,14 +6,33 @@ from django.dispatch import receiver
 import uuid
 from base.emails import send_account_activation_email
 
+ROL_CHOICES = (
+    ('cliente', 'Cliente'),
+    ('trabajador', 'Trabajador'),
+)
+
 class Profile(BaseModel):
     user = models.OneToOneField(User , on_delete=models.CASCADE , related_name="profile")
     is_email_verified = models.BooleanField(default=False)
     email_token = models.CharField(max_length=100 , null=True , blank=True)
-    profile_image = models.ImageField(upload_to = 'profile')
+    profile_image = models.ImageField(upload_to = 'profile',blank=True, null=True)
+    
+    #datos del cliente
+    direccion = models.CharField(max_length=255, blank=True)
+    distrito = models.CharField(max_length=255, default="Lambayeque", blank=True)
+    referencia = models.CharField(max_length=255, blank=True)
+    dni = models.CharField(max_length=15, blank=True)
+    
+    # Rol por defecto
+    rol = models.CharField(max_length=20, choices=ROL_CHOICES, default='cliente')
 
     def __str__(self):
         return self.user.username
+
+@receiver(post_save, sender=User)
+def crear_perfil_usuario(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance, rol='cliente')
 
 @receiver(post_save , sender = User)
 def  send_email_token(sender , instance , created , **kwargs):
@@ -64,8 +82,6 @@ class MyAccountManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-
-
 class Account(AbstractBaseUser):
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=55)
@@ -81,12 +97,10 @@ class Account(AbstractBaseUser):
     is_active = models.BooleanField(default=False)
     is_superadmin = models.BooleanField(default=False)
 
-
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     objects = MyAccountManager()
-
 
     def full_name(self):
         return f'{self.first_name} {self.last_name}'

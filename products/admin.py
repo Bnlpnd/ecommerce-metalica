@@ -1,50 +1,37 @@
-from csv import list_dialects
 from django.contrib import admin
-
-# Register your models here.
-
 from .models import *
 
-class ProductImageAdmin(admin.StackedInline):
+@admin.register(Tipo)
+class TipoAdmin(admin.ModelAdmin):
+    list_display = ['tipo_name', 'description']
+
+class ProductImageInline(admin.StackedInline):
     model =ProductImage
+    extra = 1 #muestra 1 formulario vacio adicional
 
+
+# PRINCIPAL
+# producto (de barras, 4 puertas, etc)
+@admin.register(Product) 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['product_name' , 'price' ]
-    inlines = [ProductImageAdmin]
-
-class ModeloImageAdmin(admin.StackedInline):
-    model =ModeloImage
-
-class ModeloAdmin(admin.ModelAdmin):
-    list_display = ['modelo_name' , 'slug' ]
-    inlines = [ModeloImageAdmin]
-
-@admin.register(Acabado)
-class Acabado(admin.ModelAdmin):
-    list_display = ['acabado_name' , 'description']
-    model = Acabado
-
-@admin.register(Seguridad)
-class Seguridad(admin.ModelAdmin):
-    list_display = ['seguridad_name' , 'description']
-    model = Seguridad
+    list_display = ['product_name' , 'tipo','description']
+    list_filter = ['tipo']
+    search_fields = ['product_name']
+    inlines = [ProductImageInline]
     
-@admin.register(Estructura)
-class Estructura(admin.ModelAdmin):
-    list_display = ['estructura_name' , 'slug']
-    model = Estructura
 
-#@admin.register(SizeVariant)
-#class SizeVariantAdmin(admin.ModelAdmin):
-#    list_display = ['size_name' , 'price']
-#
-#    model = SizeVariant
+@admin.register(Material)
+class MaterialAdmin(admin.ModelAdmin):
+    list_display = ['material_name', 'description']
 
-admin.site.register(Category)
+# PRINCIPAL
+# producto_material (de barras y simple)
+@admin.register(ProductMaterial)
+class ProductMaterialAdmin(admin.ModelAdmin):
+    list_display = ['productmaterial_name', 'product', 'descripcion_materiales']
+    search_fields = ['productmaterial_name', 'product__product_name']
 
-admin.site.register(Product ,ProductAdmin)
-admin.site.register(Modelo ,ModeloAdmin)
+    def descripcion_materiales(self, obj):
+        return obj.material.material_name
 
-
-admin.site.register(ProductImage)
-admin.site.register(ModeloImage)
+    descripcion_materiales.short_description = "Material"
