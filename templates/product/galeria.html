@@ -7,8 +7,8 @@
       <ul class="list-group">
         {% for tipo in tipos %}
         <a
-          href="?tipo={{ tipo.id }}"
-          class="list-group-item {% if tipo.id == tipo_seleccionado %}active{% endif %}"
+          href="{% url 'galeria' %}?tipo={{ tipo.uid }}"
+          class="list-group-item {% if tipo.uid|stringformat:"s" == tipo_seleccionado|stringformat:"s" %}active bg-primary text-white{% endif %}"
         >
           {{ tipo.tipo_name }}
         </a>
@@ -26,7 +26,8 @@
             {% if producto.product_images.first %}
             <img
               src="{{ producto.product_images.first.image.url }}"
-              class="card-img-top"
+              class="card-img-top img-fluid"
+              style="max-height: 250px; object-fit: contain"
               alt="Imagen del producto"
             />
             {% endif %}

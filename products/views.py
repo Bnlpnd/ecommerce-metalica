@@ -1,8 +1,5 @@
 from django.shortcuts import render
-from pydoc import render_doc
-from tkinter import E
-from django.shortcuts import render
-from .models import Tipo, Product, ProductImage
+from .models import Tipo, Product
 
  
 def galeria_view(request):
@@ -10,13 +7,18 @@ def galeria_view(request):
     tipo_seleccionado = request.GET.get('tipo')
     
     if tipo_seleccionado:
-        productos = Product.objects.filter(tipo_id=tipo_seleccionado)
+        productos = Product.objects.filter(tipo__uid=tipo_seleccionado)
+        try:
+            tipo_seleccionado = int(tipo_seleccionado)
+        except ValueError:
+            tipo_seleccionado = None
     else:
-        productos = Product.objects.all()
+        productos = Product.objects.filter(tipo__uid=tipo_seleccionado)
+        tipo_seleccionado = None
     
     contexto = {
         'tipos': tipos,
         'productos': productos,
-        'tipo_seleccionado': int(tipo_seleccionado) if tipo_seleccionado else None,
+        'tipo_seleccionado': tipo_seleccionado,
     }
     return render(request, 'product/galeria.html', contexto)
