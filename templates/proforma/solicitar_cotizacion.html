@@ -1,0 +1,9 @@
+{% extends 'home/base.html' %} {% block content %}
+<div class="container mt-4">
+  <h4>Cotizar modelo: {{ producto.product_name }}</h4>
+  <form method="POST">
+    {% csrf_token %} {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Enviar cotización</button>
+  </form>
+</div>
+{% endblock %}

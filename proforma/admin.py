@@ -51,3 +51,23 @@ class ContratoAdmin(admin.ModelAdmin):
             'fields': ('pdf', 'slug')
         }),
     )
+    
+
+@admin.register(Cotizacion)
+class CotizacionAdmin(admin.ModelAdmin):
+    list_display = ['cliente', 'producto', 'estado', 'fecha_creacion']
+    list_filter = ['estado', 'fecha_creacion']
+    search_fields = ['cliente__username', 'producto__product_name']
+    readonly_fields = ['fecha_creacion']
+
+    fieldsets = (
+        ('Información del cliente y producto', {
+            'fields': ('cliente', 'producto')
+        }),
+        ('Preguntas del formulario', {
+            'fields': ('pregunta_1', 'pregunta_2', 'pregunta_3')
+        }),
+        ('Seguimiento', {
+            'fields': ('estado', 'fecha_creacion')
+        }),
+    )

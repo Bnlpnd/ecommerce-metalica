@@ -1,9 +1,21 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-from products.models import ProductMaterial
+from products.models import ProductMaterial, Product
 from base.models import BaseModel
 from django.utils.text import slugify
+
+class Cotizacion(models.Model):
+    cliente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cotizaciones')
+    producto = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='cotizaciones')
+    pregunta_1 = models.TextField()
+    pregunta_2 = models.TextField()
+    pregunta_3 = models.TextField()
+    estado = models.CharField(max_length=20, default='pendiente')  # pendiente, revisado, etc.
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Cotización de {self.cliente.username} - {self.producto.product_name}'
 
 
 #proforma 

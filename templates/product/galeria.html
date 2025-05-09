@@ -34,7 +34,7 @@
             <div class="card-body">
               <h5 class="card-title">{{ producto.product_name }}</h5>
               <p class="card-text">{{ producto.description }}</p>
-              <a href="#" class="btn btn-primary">Cotizar</a>
+              <a href="{% url 'solicitar_cotizacion' producto.uid %}" class="btn btn-primary">  Cotizar </a>
             </div>
           </div>
         </div>
