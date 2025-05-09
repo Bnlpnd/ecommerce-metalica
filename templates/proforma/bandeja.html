@@ -1,0 +1,78 @@
+{% extends "home/base.html" %} {% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <!-- Bandeja lateral -->
+    <div class="col-md-3 bg-light p-3" style="height: 100vh; overflow-y: auto">
+      <h5>Cotizaciones pendientes</h5>
+      <ul class="list-group">
+        {% for cot in cotizaciones %}
+        <a
+          href="{% url 'bandeja_cotizaciones' cot.id %}"
+          class="list-group-item {% if cot == cotizacion_activa %}active{% endif %}"
+        >
+          {{ cot.cliente.username }}<br />
+          <small>{{ cot.fecha_creacion|date:"d/m/Y H:i" }}</small>
+        </a>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- Vista detalle -->
+    <div class="col-md-9 p-4">
+      {% if cotizacion_activa %}
+      <h4>Solicitud de {{ cotizacion_activa.cliente.username }}</h4>
+
+      <div class="row">
+        <!-- Respuestas del cliente -->
+        <div class="col-md-6">
+          <div class="card mb-4">
+            <div class="card-body">
+              <h5 class="card-title">Respuestas del cliente</h5>
+              <p>
+                <strong>Pregunta 1:</strong> {{ cotizacion_activa.pregunta_1 }}
+              </p>
+              <p>
+                <strong>Pregunta 2:</strong> {{ cotizacion_activa.pregunta_2 }}
+              </p>
+              <p>
+                <strong>Pregunta 3:</strong> {{ cotizacion_activa.pregunta_3 }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formulario para cotizar -->
+        <div class="col-md-6">
+          <div class="card mb-4">
+            <div class="card-body">
+              <h5 class="card-title">Formulario para cotizar</h5>
+              {% if precio_calculado %}
+              <div class="alert alert-info">
+                <strong>Precio calculado:</strong> S/. {{ precio_calculado }}
+              </div>
+              {% endif %}
+              <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %} {{ form.as_p }}
+                <button type="submit" class="btn btn-success">
+                  Guardar Proforma
+                </button>
+              </form>
+              {% if proforma %}
+              <a
+                href="{% url 'descargar_pdf' proforma.uid %}"
+                class="btn btn-secondary mt-3"
+              >
+                Descargar PDF
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <p>No hay cotizaciones seleccionadas.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

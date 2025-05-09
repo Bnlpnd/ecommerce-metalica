@@ -11,6 +11,17 @@ class CotizacionForm(forms.ModelForm):
             'pregunta_3': forms.Textarea(attrs={'rows': 2}),
         }
 
+class ProformaForm(forms.ModelForm):
+    class Meta:
+        model = Proforma
+        fields = ['proforma_num', 'alto', 'ancho', 'color', 'chapa', 'detale_extra', 'precioinstalacion', 'preciototal']
+        widgets = {
+            'color': forms.Textarea(attrs={'rows': 3, 'style': 'height: 60px;'}),
+            'chapa': forms.Textarea(attrs={'rows': 3, 'style': 'height: 60px;'}),
+            'detale_extra': forms.Textarea(attrs={'rows': 3, 'style': 'height: 60px;'}),
+        }
+
+
 #class CostoPredictionForm(forms.Form):
  #    categoria = forms.IntegerField(label='categoria')
  #   modelo  = forms.IntegerField(label='modelo')

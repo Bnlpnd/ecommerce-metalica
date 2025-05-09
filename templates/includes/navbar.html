@@ -32,6 +32,15 @@
           >Galería</a
         >
       </li>
+      {% if user.is_authenticated and user.profile.rol == 'trabajador' %}
+      <li>
+        <a
+          href="{% url 'bandeja_cotizaciones' %}"
+          class="nav-link px-2 text-secondary"
+          >Bandeja</a
+        >
+      </li>
+      {% endif %}
     </ul>
 
     <div class="col-md-3 text-end">
