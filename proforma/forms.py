@@ -6,9 +6,24 @@ class CotizacionForm(forms.ModelForm):
         model = Cotizacion
         fields = ['pregunta_1', 'pregunta_2', 'pregunta_3']
         widgets = {
-            'pregunta_1': forms.Textarea(attrs={'rows': 2}),
-            'pregunta_2': forms.Textarea(attrs={'rows': 2}),
-            'pregunta_3': forms.Textarea(attrs={'rows': 2}),
+            'pregunta_1': forms.Textarea(attrs={
+                'rows': 2,
+                'class': 'form-control form-control-lg',
+                'id': 'pregunta_1',
+                'aria-label': 'Pregunta 1'
+            }),
+            'pregunta_2': forms.Textarea(attrs={
+                'rows': 2,
+                'class': 'form-control form-control-lg',
+                'id': 'pregunta_2',
+                'aria-label': 'Pregunta 2'
+            }),
+            'pregunta_3': forms.Textarea(attrs={
+                'rows': 2,
+                'class': 'form-control form-control-lg',
+                'id': 'pregunta_3',
+                'aria-label': 'Pregunta 3'
+            }),
         }
 
 class ProformaForm(forms.ModelForm):
@@ -16,9 +31,14 @@ class ProformaForm(forms.ModelForm):
         model = Proforma
         fields = ['proforma_num', 'alto', 'ancho', 'color', 'chapa', 'detale_extra', 'precioinstalacion', 'preciototal']
         widgets = {
-            'color': forms.Textarea(attrs={'rows': 3, 'style': 'height: 60px;'}),
-            'chapa': forms.Textarea(attrs={'rows': 3, 'style': 'height: 60px;'}),
-            'detale_extra': forms.Textarea(attrs={'rows': 3, 'style': 'height: 60px;'}),
+            'proforma_num': forms.TextInput(attrs={ 'class': 'form-control' }),
+            'alto': forms.NumberInput(attrs={ 'class': 'form-control' }),
+            'ancho': forms.NumberInput(attrs={ 'class': 'form-control' }),
+            'color': forms.Textarea(attrs={'rows': 3, 'style': 'height: 60px;', 'class': 'form-control'}),
+            'chapa': forms.Textarea(attrs={'rows': 3, 'style': 'height: 60px;', 'class': 'form-control'}),
+            'detale_extra': forms.Textarea(attrs={'rows': 3, 'style': 'height: 60px;', 'class': 'form-control'}),
+            'precioinstalacion': forms.NumberInput(attrs={ 'class': 'form-control' }),
+            'preciototal': forms.NumberInput(attrs={ 'class': 'form-control' }),
         }
 
 
