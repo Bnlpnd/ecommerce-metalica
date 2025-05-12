@@ -1,3 +1,3 @@
-## DJANGO COMPLETE ECOMMERCE -
+## cotizacion puerta metalica w/ algoritmo predictivo
 
 # holi boli
