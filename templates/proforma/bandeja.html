@@ -10,22 +10,28 @@
           href="{% url 'bandeja_cotizaciones' cot.id %}"
           class="list-group-item {% if cot == cotizacion_activa %}active{% endif %}"
         >
-        <strong>{{ cot.cliente.first_name }} {{cot.cliente.last_name}}</strong> <small>({{cot.cliente.username}})</small>
-        <br />
-        <small>{{cot.producto.product_name}}</small>
-        <br />
-        <small>Hace {{ cot.fecha_creacion|timesince }}</small>
+          <strong
+            >{{ cot.cliente.first_name }} {{cot.cliente.last_name}}</strong
+          >
+          <small>({{cot.cliente.username}})</small>
+          <br />
+          <small>{{cot.producto.product_name}}</small>
+          <br />
+          <small>Hace {{ cot.fecha_creacion|timesince }}</small>
         </a>
         {% endfor %}
       </ul>
     </div>
 
     <!-- Vista detalle -->
-    <div class="col-md-9" style="padding-left: 20px;">
+    <div class="col-md-9" style="padding-left: 20px">
       <div class="p-4 rounded border card">
         {% if cotizacion_activa %}
-        <h4>Solicitud de {{ cotizacion_activa.cliente.first_name }} {{cotizacion_activa.cliente.last_name}} ({{cotizacion_activa.cliente.username}})</h4>
-        <br/>
+        <h4>
+          Solicitud de {{ cotizacion_activa.cliente.first_name }}
+          {{cotizacion_activa.cliente.last_name}}
+          ({{cotizacion_activa.cliente.username}})
+        </h4>
 
         <div class="row">
           <!-- Respuestas del cliente -->
@@ -36,13 +42,13 @@
               </div>
               <div class="card-body">
                 <p>
-                  <strong>Pregunta 1:</strong> {{ cotizacion_activa.pregunta_1 }}
+                  <strong>Pregunta 1:</strong> {{cotizacion_activa.pregunta_1}}
                 </p>
                 <p>
-                  <strong>Pregunta 2:</strong> {{ cotizacion_activa.pregunta_2 }}
+                  <strong>Pregunta 2:</strong> {{cotizacion_activa.pregunta_2}}
                 </p>
                 <p>
-                  <strong>Pregunta 3:</strong> {{ cotizacion_activa.pregunta_3 }}
+                  <strong>Pregunta 3:</strong> {{cotizacion_activa.pregunta_3}}
                 </p>
               </div>
             </div>
@@ -55,27 +61,43 @@
                 <h5 class="card-title">Formulario para cotizar</h5>
               </div>
               <div class="card-body">
-          
-                {% if precio_calculado %}
+                {% if messages %} {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %} {% endif %} {% if precio_calculado is not None %}
                 <div class="alert alert-info mb-3">
-                  <strong>Precio calculado:</strong> S/. {{ precio_calculado }}
+                  <strong>Precio estimado:</strong> S/. {{ precio_calculado }}
                 </div>
                 {% endif %}
-          
-                <form method="POST" enctype="multipart/form-data" class="quote-form">
+
+                <form
+                  method="POST"
+                  enctype="multipart/form-data"
+                  class="quote-form"
+                >
                   {% csrf_token %}
-                  
-                  <div class="form-group mb-3">
-                    {{ form.as_p }}
-                  </div>
-          
-                  <div class="text-end">
-                    <button type="submit" class="btn btn-primary px-4 py-2">
+
+                  <div class="form-group mb-3">{{ form.as_p }}</div>
+
+                  <div class="d-flex justify-content-between">
+                    <button
+                      type="submit"
+                      name="predecir"
+                      class="btn btn-warning px-4 py-2"
+                    >
+                      Predecir costo
+                    </button>
+                    <button
+                      type="submit"
+                      name="guardar"
+                      class="btn btn-primary px-4 py-2"
+                    >
                       Guardar Proforma
                     </button>
                   </div>
+
+                  <!-- class="btn btn-primary px-4 py-2">-->
                 </form>
-          
+
                 {% if proforma %}
                 <a
                   href="{% url 'descargar_pdf' proforma.uid %}"
@@ -87,14 +109,11 @@
               </div>
             </div>
           </div>
-          
-          
         </div>
         {% else %}
         <p>No hay cotizaciones seleccionadas.</p>
         {% endif %}
       </div>
-        
     </div>
   </div>
 </div>

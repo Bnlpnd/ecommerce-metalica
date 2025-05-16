@@ -29,7 +29,7 @@ class CotizacionForm(forms.ModelForm):
 class ProformaForm(forms.ModelForm):
     class Meta:
         model = Proforma
-        fields = ['proforma_num', 'alto', 'ancho', 'color', 'chapa', 'detale_extra', 'precioinstalacion', 'preciototal']
+        fields = ['proforma_num', 'alto', 'ancho', 'color', 'chapa', 'detale_extra', 'precioinstalacion', 'precio', 'preciototal']
         widgets = {
             'proforma_num': forms.TextInput(attrs={ 'class': 'form-control' }),
             'alto': forms.NumberInput(attrs={ 'class': 'form-control' }),
@@ -38,6 +38,7 @@ class ProformaForm(forms.ModelForm):
             'chapa': forms.Textarea(attrs={'rows': 3, 'style': 'height: 60px;', 'class': 'form-control'}),
             'detale_extra': forms.Textarea(attrs={'rows': 3, 'style': 'height: 60px;', 'class': 'form-control'}),
             'precioinstalacion': forms.NumberInput(attrs={ 'class': 'form-control' }),
+            'precio': forms.NumberInput(attrs={ 'class': 'form-control' }),
             'preciototal': forms.NumberInput(attrs={ 'class': 'form-control' }),
         }
 
