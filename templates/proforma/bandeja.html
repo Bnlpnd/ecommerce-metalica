@@ -82,6 +82,7 @@
                     <button
                       type="submit"
                       name="predecir"
+                      formnovalidate
                       class="btn btn-warning px-4 py-2"
                     >
                       Predecir costo
@@ -105,6 +106,62 @@
                 >
                   Descargar PDF
                 </a>
+                {% endif %}
+
+                <!--que se añada en el input de precio, calcule automatico el precio total-->
+                {% if precio_calculado is not None%}
+                <script>
+                  document.addEventListener("DOMContentLoaded", function () {
+                    const precioInput = document.querySelector(
+                      "input[name='precio']"
+                    );
+                    const instalacionInput = document.querySelector(
+                      "input[name='precioinstalacion']"
+                    );
+                    const totalInput = document.querySelector(
+                      "input[name='preciototal']"
+                    );
+
+                    const estimado = parseFloat("{{ precio_calculado }}");
+
+                    if (!isNaN(estimado)) {
+                      if (precioInput) {
+                        precioInput.value = estimado;
+                      }
+
+                      function actualizarTotal() {
+                        const precio = parseFloat(precioInput?.value) || 0;
+                        const instalacion =
+                          parseFloat(instalacionInput?.value) || 0;
+                        const total = precio + instalacion;
+
+                        if (totalInput) {
+                          totalInput.value = total.toFixed(2);
+                        }
+                      }
+
+                      // Calcular total al cargar
+                      actualizarTotal();
+
+                      // Recalcular si se modifica el campo de instalación
+                      if (instalacionInput) {
+                        instalacionInput.addEventListener(
+                          "input",
+                          actualizarTotal
+                        );
+                      }
+
+                      // Recalcular si se modifica el campo precio manualmente
+                      if (precioInput) {
+                        precioInput.addEventListener("input", actualizarTotal);
+                      }
+                    } else {
+                      console.warn(
+                        "⚠️ precio_calculado no es un número válido."
+                      );
+                    }
+                  });
+                </script>
                 {% endif %}
               </div>
             </div>

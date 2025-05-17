@@ -1,17 +1,18 @@
-from django.http import HttpResponse
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import HttpResponse, HttpResponseForbidden, FileResponse
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import *
 from .models import *
 from products.models import Product, ProductMaterial
 from django.contrib import messages
+from django.conf import settings
+BASE_DIR = settings.BASE_DIR
 import joblib
 import os
-from django.http import HttpResponseForbidden
-from django.http import FileResponse
 from reportlab.pdfgen import canvas
 from io import BytesIO
-from .models import Proforma
+from django.core.files.base import ContentFile
+import pandas as pd
 
 @login_required
 def solicitar_cotizacion(request, product_uid):
@@ -25,7 +26,6 @@ def solicitar_cotizacion(request, product_uid):
             cotizacion.producto = producto
             cotizacion.save()
             messages.success(request, 'Se ha mandado la cotización. ¡Muchas gracias por su preferencia!')
-        
             return redirect('galeria')  # o a una página de confirmación
     else:
         form = CotizacionForm()
@@ -35,10 +35,8 @@ def solicitar_cotizacion(request, product_uid):
         'producto': producto
     })
 
-
 def ping(request):
     return HttpResponse("Proforma app está funcionando.")
-
 
 @login_required
 def bandeja_cotizaciones(request, cotizacion_id=None):
@@ -48,7 +46,7 @@ def bandeja_cotizaciones(request, cotizacion_id=None):
 
     cotizaciones = Cotizacion.objects.filter(estado='pendiente').order_by('-fecha_creacion')
     
-    # ⛔ VERIFICAR SI HAY COTIZACIONES DISPONIBLES
+    # VERIFICAR SI HAY COTIZACIONES DISPONIBLES
     if not cotizaciones.exists():
         messages.warning(request, "No hay cotizaciones pendientes.")
         return render(request, 'proforma/bandeja.html', {
@@ -70,17 +68,79 @@ def bandeja_cotizaciones(request, cotizacion_id=None):
         
         if form.is_valid():
             if 'predecir' in request.POST and form.is_valid():
-                modelo_path = os.path.join('modelo', 'modelo_arbol.pkl')
+                
+                # 1. Diccionario de codificación
+                codigos_producto = {
+                    'Porton cochera levadizo': 0,
+                    'Porton corredizo 2Hojas': 1,
+                    'Porton seccional para cochera': 2,
+                    'Puerta con aplicaciones en acero inoxidable': 3,
+                    'Puerta enrrollable mas enrejado para negocio de 4 Hojas': 4,
+                    'Puerta enrrollable mas enrejado para negocio de barras 2 Hojas': 5,
+                    'Puerta enrrollable mas enrejado para negocio rombo 4 Hojas': 6,
+                    'Puerta enrrollable para negocio': 7,
+                    'Puerta interior barras lineales': 8,
+                    'Puerta interior con circulos': 9,
+                    'Puerta modelo en arco': 10,
+                    'Puerta principal estilo madera': 11
+                }
+
+                codigos_material = {
+                    'Material simple': 0,
+                    'Material intermedio': 1,
+                    'Material resistente': 2
+                }
+                
+                # 2. Extraer datos
+                alto = form.cleaned_data['alto']
+                ancho = form.cleaned_data['ancho']
+
+                producto_nombre = cotizacion_seleccionada.producto.product_name
+                
+                #product_material = cotizacion_seleccionada.producto.products.first() #CAMBIE AHORA _SET
+                #material_nombre = product_material.material.material_name if product_material else 'Material simple'
+
+                # material se selecciona desde el formulario (es un ForeignKey a Material)
+                material_obj = form.cleaned_data['material']
+                material_nombre = material_obj.material_name  # accede al nombre del material
+
+                producto_cod = codigos_producto.get(producto_nombre, 0)
+                material_cod = codigos_material.get(material_nombre, 0)
+                
+                # 3. Preparar y predecir
+                datos = pd.DataFrame([[alto, ancho, producto_cod, material_cod]], columns=['alto', 'ancho', 'producto', 'material'])
+                modelo_path = os.path.join(BASE_DIR, 'modelo_arbol.pkl')
+                print("Entró al modelo")
+                print(alto,ancho,producto_cod, producto_nombre, material_cod, material_nombre)
+                
+                print("📁 Buscando modelo en:", modelo_path)
+
+
                 if os.path.exists(modelo_path):
                     modelo = joblib.load(modelo_path)
-                    datos = [[form.cleaned_data['alto'], form.cleaned_data['ancho']]]
-                    prediccion = modelo.predict(datos)
-                    precio_calculado = round(prediccion[0], 2)
-                    messages.info(request, f'Precio estimado: S/. {precio_calculado}')
+                    print("modelo cargado correctamente:", modelo)
+
+                    # prediccion = modelo.predict(datos)
+                    # datos = [[form.cleaned_data['alto'], form.cleaned_data['ancho']]]
+                    
+                    print("📊 Datos para predecir:")
+                    print(datos)
+                    print("📊 Columnas:", datos.columns)
+
+                    try:
+                        prediccion = modelo.predict(datos)
+                        precio_calculado = round(prediccion[0], 2)
+                        
+                        print("🔍 Precio calculado:", precio_calculado)
+
+                        messages.info(request, f'Precio estimado: S/. {precio_calculado}')
+                    except Exception as e:
+                        print("❌ Error al predecir:", e)
+                        
             elif 'guardar' in request.POST and form.is_valid():
                 proforma = form.save(commit=False)
                 proforma.cliente = cotizacion_seleccionada.cliente
-                proforma.productmaterial = cotizacion_seleccionada.producto.productmaterial_set.first()
+                #proforma.productmaterial = cotizacion_seleccionada.producto.products.first() #cambie _set
                 proforma.preciototal = proforma.precio + proforma.precioinstalacion
                 proforma.save()
 
@@ -94,6 +154,7 @@ def bandeja_cotizaciones(request, cotizacion_id=None):
                 p.drawString(50, 740, f"Ancho: {proforma.ancho}")
                 p.drawString(50, 720, f"Color: {proforma.color}")
                 p.drawString(50, 700, f"Chapa: {proforma.chapa}")
+                p.drawString(50, 640, f"Material: {proforma.material.material_name}")
                 p.drawString(50, 680, f"Precio Instalación: {proforma.precioinstalacion}")
                 p.drawString(50, 660, f"Precio Total: {proforma.preciototal}")
                 p.showPage()
@@ -109,7 +170,6 @@ def bandeja_cotizaciones(request, cotizacion_id=None):
                 cotizacion_seleccionada.save()
                 messages.success(request, 'Proforma guardada correctamente.')
                 return redirect('bandeja_cotizaciones')
-            
     contexto = {
         'cotizaciones': cotizaciones,
         'cotizacion_activa': cotizacion_seleccionada,
@@ -118,8 +178,6 @@ def bandeja_cotizaciones(request, cotizacion_id=None):
         'proforma': proforma         # <-- PASA LA PROFORMA AL CONTEXTO
         }
     return render(request, 'proforma/bandeja.html', contexto)
-
-
 
 def descargar_pdf(request, proforma_uid):
     proforma = Proforma.objects.get(uid=proforma_uid)
@@ -136,7 +194,6 @@ def descargar_pdf(request, proforma_uid):
     p.drawString(50, 700, f"Chapa: {proforma.chapa}")
     p.drawString(50, 680, f"Precio Instalación: {proforma.precioinstalacion}")
     p.drawString(50, 660, f"Precio Total: {proforma.preciototal}")
-
     p.showPage()
     p.save()
 

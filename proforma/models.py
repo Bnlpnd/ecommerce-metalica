@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-
-from products.models import ProductMaterial, Product
+from products.models import ProductMaterial, Product, Material
 from base.models import BaseModel
 from django.utils.text import slugify
 
@@ -28,6 +27,7 @@ class Proforma(BaseModel):
     color = models.TextField(max_length=250, default="negro")
     chapa = models.TextField(max_length=250, default="chapa: izquierda   abre: afuera")
     detale_extra = models.TextField(max_length=500, default=" ")  #se añade fecha tentativa de entrega
+    material = models.ForeignKey(Material, on_delete=models.CASCADE, related_name='proformas', null=True, blank=True)
     precioinstalacion = models.DecimalField (max_digits=10, decimal_places=2)
     preciototal = models.DecimalField(max_digits=10, decimal_places=2) #se le suma si hay instalacion
     cliente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='proformas')
