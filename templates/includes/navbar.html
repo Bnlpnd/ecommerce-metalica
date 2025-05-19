@@ -32,6 +32,15 @@
           >Galería</a
         >
       </li>
+      <li>
+        <a href="{% url 'galeria' %}" class="nav-link px-2 text-secondary"
+          >Cotizar</a
+        >
+      </li>
+      <li>
+        <a href="#" class="nav-link px-2 text-secondary">Producto</a>
+      </li>
+
       {% if user.is_authenticated and user.profile.rol == 'trabajador' %}
       <li>
         <a

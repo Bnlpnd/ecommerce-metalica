@@ -22,6 +22,7 @@ class Tipo(BaseModel):
 class Product(BaseModel):
     product_name = models.CharField(max_length=100)
     description = models.TextField(max_length=250, default="")
+    detalle = models.TextField(max_length=250, default="Medidas: Tiempo de elaboración:")
     tipo = models.ForeignKey(Tipo ,  on_delete=models.CASCADE,related_name="tipos", null=True, blank=True)
 
     def save(self , *args , **kwargs):
@@ -34,7 +35,7 @@ class Product(BaseModel):
 # ProductMaterial 
 class ProductMaterial(BaseModel):
     productmaterial_name = models.CharField(max_length=100)
-    description = models.TextField(max_length=250, default="") #se agrega el listado de materiales segun el producto que se selecciona
+    description = models.TextField(max_length=950, default="") #se agrega el listado de materiales segun el producto que se selecciona
     product = models.ForeignKey(Product ,  on_delete=models.CASCADE,related_name="products", default="")
     material = models.ForeignKey(Material, on_delete=models.CASCADE, related_name="materials")
 
