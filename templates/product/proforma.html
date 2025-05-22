@@ -166,32 +166,55 @@
     let modeloSelect = row.querySelector(".modelo-puerta");
     let imagen = row.querySelector(".imagen-modelo");
 
+    // Reiniciar imagen y opciones
     modeloSelect.innerHTML = "<option value=''>Cargando...</option>";
+    imagen.style.display = "none";
+    imagen.src = "";
+
     fetch(`/product/ajax/modelos_por_tipo/?tipo_id=${tipoId}`)
       .then((response) => response.json())
       .then((data) => {
         console.log(data); // 👈 verifica esto en la consola del navegador
-        modeloSelect.innerHTML = "";
-        data.modelos.forEach((modelo) => {
+        modeloSelect.innerHTML = ""; // Limpiar el select
+
+        if (data.modelos.length === 0) {
+          modeloSelect.innerHTML =
+            "<option value=''>Sin modelos disponibles</option>";
+          return;
+        }
+
+        // Insertar opciones
+        data.modelos.forEach((modelo, index) => {
           let opt = document.createElement("option");
           opt.value = modelo.id;
           opt.textContent = modelo.nombre;
           opt.dataset.imagen = modelo.imagen_url;
           modeloSelect.appendChild(opt);
+
+          // Mostrar imagen del primer modelo por defecto
+          if (index === 0 && modelo.imagen_url) {
+            imagen.src = modelo.imagen_url;
+            imagen.style.display = "block";
+          }
         });
-        if (data.modelos[0] && data.modelos[0].imagen_url) {
-          imagen.src = data.modelos[0].imagen_url;
-          imagen.style.display = "block";
-        } else {
-          imagen.style.display = "none";
-        }
+      })
+      .catch((error) => {
+        console.error("Error en fetch modelos:", error);
       });
   }
+
+  // Asigna el evento a todos los selects tipo-puerta
+  document.querySelectorAll(".tipo-puerta").forEach((select) => {
+    select.addEventListener("change", function () {
+      cargarModelos(this);
+    });
+  });
 
   function actualizarImagen(select) {
     let row = select.closest("tr");
     let imagen = row.querySelector(".imagen-modelo");
     let selected = select.selectedOptions[0];
+
     if (selected.dataset.imagen) {
       imagen.src = selected.dataset.imagen;
       imagen.style.display = "block";

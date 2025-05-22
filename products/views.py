@@ -48,20 +48,22 @@ def obtener_modelos_por_tipo(request):
         return JsonResponse({'error': 'tipo_id vacío'}, status=400)
 
 
-    productos = Product.objects.filter(tipo_id=tipo_id)
+    productos = Product.objects.filter(tipo__uid=tipo_id)
+    print(f"Productos filtrados: {[p.product_name for p in productos]}")
+
     
     data = []
     for producto in productos:
-        print(producto.product_name)
         imagen = producto.product_images.first()
         imagen_url = imagen.image.url if imagen else ''
-        modelos = ProductMaterial.objects.filter(product=producto)
-        
-        for pm in modelos:
-            data.append({
-                'id': str(pm.uid), # UUID como string para JS
-                'nombre': pm.product.product_name, # El nombre del producto
-                'imagen_url': imagen_url
-            })
-    
+
+        #modelos = ProductMaterial.objects.filter(product=producto)
+
+        data.append({
+            'id': str(producto.uid),
+            'nombre': producto.product_name,
+            'imagen_url': imagen_url
+        })
+
+    print("Modelos devueltos:", data)  # VERIFICA ESTO EN CONSOLA
     return JsonResponse({'modelos': data})
