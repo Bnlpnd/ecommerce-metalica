@@ -7,7 +7,7 @@
       <thead class="table-light">
         <tr>
           <th>Cant</th>
-          <th>Tipo de puerta</th>
+          <th>Producto</th>
           <th>Modelo de puerta</th>
           <th>Imagen</th>
           <th>
@@ -37,12 +37,12 @@
           </td>
           <td>
             <select
-              class="form-select form-select-sm tipo-puerta"
+              class="form-select form-select-sm productos"
               onchange="cargarModelos(this)"
             >
               <option value="">Seleccione</option>
-              {% for tipo in tipos_puerta %}
-              <option value="{{ tipo.uid }}">{{ tipo.tipo_name }}</option>
+              {% for producto in productos %}
+              <option value="{{ producto.uid }}">{{ producto.product_name }}</option>
               {% endfor %}
             </select>
           </td>
@@ -155,10 +155,10 @@
   }
 
   function cargarModelos(select) {
-    let tipoId = select.value;
+    let productoId = select.value;
 
-    if (!tipoId) {
-      console.warn("No se seleccionó tipo de puerta.");
+    if (!productoId) {
+      console.warn("No se seleccionó producto.");
       return; // Detiene ejecución si no hay ID válido
     }
 
@@ -171,7 +171,7 @@
     imagen.style.display = "none";
     imagen.src = "";
 
-    fetch(`/product/ajax/modelos_por_tipo/?tipo_id=${tipoId}`)
+    fetch(`/product/ajax/modelos_por_tipo/?product_id=${productoId}`)
       .then((response) => response.json())
       .then((data) => {
         console.log(data); // 👈 verifica esto en la consola del navegador

@@ -7,7 +7,7 @@ from .models import *
 @admin.register(Proforma)
 class ProformaAdmin(admin.ModelAdmin):
     list_display = ['proforma_num', 'cliente', 'productmaterial', 'precio', 'precioinstalacion', 'preciototal', 'fecha']
-    list_filter = ['fecha', 'cliente', 'productmaterial']
+    list_filter = ['estado', 'fecha', 'cliente', 'productmaterial']
     search_fields = ['proforma_num', 'cliente__username']
     readonly_fields = ['fecha', 'slug']
     autocomplete_fields = ['cliente', 'productmaterial']
@@ -55,7 +55,7 @@ class ContratoAdmin(admin.ModelAdmin):
 
 @admin.register(Cotizacion)
 class CotizacionAdmin(admin.ModelAdmin):
-    list_display = ['cliente', 'producto', 'estado', 'fecha_creacion']
+    list_display = ['cliente', 'producto', 'estado', 'fecha_creacion','alto', 'ancho','precio', 'color','chapa','cantidad', 'precioinstalacion', 'preciototal']
     list_filter = ['estado', 'fecha_creacion']
     search_fields = ['cliente__username', 'producto__product_name']
     readonly_fields = ['fecha_creacion']

@@ -4,64 +4,66 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 
 def galeria_view(request):
-    tipos = Tipo.objects.all()
-    tipo_seleccionado = request.GET.get('tipo')
+    productos = Product.objects.all()
+    producto_seleccionado = request.GET.get('producto')
     
-    if tipo_seleccionado:
-        productos = Product.objects.filter(tipo__uid=tipo_seleccionado)
+    if producto_seleccionado:
+        modelos = ProductMaterial.objects.filter(product_id=producto_seleccionado)
     else:
-        productos = Product.objects.all()
-        tipo_seleccionado = None
-    
+        modelos = ProductMaterial.objects.all()
+        producto_seleccionado = None
+
+    modelos_con_datos = []
+    for modelo in modelos:
+        imagen = modelo.product_images.first() if modelo else None
+        modelos_con_datos.append({
+            'modelo': modelo,
+            'imagen': imagen
+        })
+
     contexto = {
-        'tipos': tipos,
         'productos': productos,
-        'tipo_seleccionado': tipo_seleccionado,
+        'producto_seleccionado': producto_seleccionado,
+        'modelos': modelos_con_datos
     }
     return render(request, 'product/galeria.html', contexto)
 
 
 def detalle_producto(request, uid):
-    producto = get_object_or_404(Product, uid=uid)
-    materiales = ProductMaterial.objects.filter(product=producto)
-    imagen = producto.product_images.first()  # Obtiene la primera imagen asociada
+    modelo = get_object_or_404(ProductMaterial, uid=uid)
+    imagen = modelo.product_images.first() if modelo else None
 
     return render(request, 'product/detalleproduct.html', {
-        'producto': producto,
-        'materiales': materiales,
+        'modelo': modelo,
         'imagen': imagen
     })
     
 @login_required
 def proforma_view(request):
-    tipos_puerta = Tipo.objects.all()
+    productos = Product.objects.all()
     return render(request, 'product/proforma.html', {
-        'tipos_puerta': tipos_puerta,
+        'productos': productos
     })
 
 def obtener_modelos_por_tipo(request):
-    tipo_id = request.GET.get('tipo_id')
-    print("DEBUG tipo_id recibido:", tipo_id)
+    product_id = request.GET.get('product_id')
+    print("DEBUG tipo_id recibido:", product_id)
     
-    # Verifica que tipo_id no sea vacío
-    if not tipo_id:
-        return JsonResponse({'error': 'tipo_id vacío'}, status=400)
+    # Verifica que product_id no sea vacío
+    if not product_id:
+        return JsonResponse({'error': 'product_id vacío'}, status=400)
 
+    modelos = ProductMaterial.objects.filter(product_id=product_id)
+    print(f"Modelos filtrados: {[m.productmaterial_name for m in modelos]}")
 
-    productos = Product.objects.filter(tipo__uid=tipo_id)
-    print(f"Productos filtrados: {[p.product_name for p in productos]}")
-
-    
     data = []
-    for producto in productos:
-        imagen = producto.product_images.first()
+    for modelo in modelos:
+        imagen = modelo.product_images.first() if modelo else None
         imagen_url = imagen.image.url if imagen else ''
 
-        #modelos = ProductMaterial.objects.filter(product=producto)
-
         data.append({
-            'id': str(producto.uid),
-            'nombre': producto.product_name,
+            'id': str(modelo.uid),
+            'nombre': modelo.productmaterial_name,
             'imagen_url': imagen_url
         })
 

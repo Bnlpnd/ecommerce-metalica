@@ -1,7 +1,7 @@
 {% extends "home/base.html" %} {% block content %}
 <div class="container mt-4">
   <div class="card p-4">
-    <h2 class="mb-3">{{ producto.product_name }}</h2>
+    <h2 class="mb-3">{{ modelo.productmaterial_name }}</h2>
 
     <div class="row">
       <!-- Imagen del producto -->
@@ -30,20 +30,10 @@
 
       <!-- Información -->
       <div class="col-md-6">
-        <h5>Modelo:</h5>
-        <p>{{ producto.product_name }}</p>
-
         <h5>Listado de materiales:</h5>
         <ul>
-          {% for mat in materiales %}
-          <li>{{ mat.description }}</li>
-          {% empty %}
-          <li>No hay materiales registrados.</li>
-          {% endfor %}
+          <li>{{ modelo.description }}</li>
         </ul>
-
-        <h5>Detalle del producto:</h5>
-        <p>{{ producto.detalle }}</p>
 
         <!-- Botones -->
         <div class="d-flex gap-2 mt-3">
@@ -51,7 +41,7 @@
             Volver
           </a>
           <a href="{% url 'proforma' %}" class="btn btn-primary w-50">
-            Cotizar
+            Proforma
           </a>
         </div>
         <!-- <a href="{% url 'galeria' %}" class="btn btn-secondary mt-3">Volver</a> -->

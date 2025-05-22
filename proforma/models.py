@@ -7,25 +7,34 @@ from django.utils.text import slugify
 class Cotizacion(models.Model):
     cliente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cotizaciones')
     producto = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='cotizaciones')
+    cantidad = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True) 
+    alto = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True) 
+    ancho = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    precio = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    color = models.TextField(max_length=250, default="negro")
+    chapa = models.TextField(max_length=250, default="chapa: izquierda   abre: afuera")
     pregunta_1 = models.TextField()
     pregunta_2 = models.TextField()
     pregunta_3 = models.TextField()
-    estado = models.CharField(max_length=20, default='pendiente')  # pendiente, revisado, etc.
+    estado = models.CharField(max_length=20, default='pendiente')  # pendiente, revisado, etc. 
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+    precioinstalacion = models.DecimalField (max_digits=10, decimal_places=2, null=True, blank=True)
+    preciototal = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True) #se le suma si hay instalacion
 
     def __str__(self):
-        return f'Cotización de {self.cliente.username} - {self.producto.product_name}'
+        return f'Cotización agregada'
 
 
 #proforma 
 class Proforma(BaseModel):
     proforma_num = models.CharField(max_length=100) #P0001
+    estado = models.CharField(max_length=20, default='pendiente')  # pendiente, revisado, etc.
     fecha = models.DateField(auto_now_add=True)
-    alto = models.DecimalField(max_digits=10, decimal_places=2)
-    ancho = models.DecimalField(max_digits=10, decimal_places=2)
-    precio = models.DecimalField(max_digits=10, decimal_places=2)
-    color = models.TextField(max_length=250, default="negro")
-    chapa = models.TextField(max_length=250, default="chapa: izquierda   abre: afuera")
+    alto = models.DecimalField(max_digits=10, decimal_places=2) #
+    ancho = models.DecimalField(max_digits=10, decimal_places=2) #
+    precio = models.DecimalField(max_digits=10, decimal_places=2) #
+    color = models.TextField(max_length=250, default="negro") #
+    chapa = models.TextField(max_length=250, default="chapa: izquierda   abre: afuera") #
     detale_extra = models.TextField(max_length=500, default=" ")  #se añade fecha tentativa de entrega
     material = models.ForeignKey(Material, on_delete=models.CASCADE, related_name='proformas', null=True, blank=True)
     precioinstalacion = models.DecimalField (max_digits=10, decimal_places=2)

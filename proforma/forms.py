@@ -5,7 +5,7 @@ from products.models import Material
 class CotizacionForm(forms.ModelForm):
     class Meta:
         model = Cotizacion
-        fields = ['pregunta_1', 'pregunta_2', 'pregunta_3']
+        fields = ['pregunta_1', 'pregunta_2', 'pregunta_3','alto','ancho','precio', 'color','chapa', 'cantidad','precioinstalacion', 'preciototal']
         widgets = {
             'pregunta_1': forms.Textarea(attrs={
                 'rows': 2,
