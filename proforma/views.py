@@ -14,6 +14,7 @@ from io import BytesIO
 from django.core.files.base import ContentFile
 import pandas as pd
 
+
 @login_required
 def solicitar_cotizacion(request, product_uid):
     producto = get_object_or_404(Product, uid=product_uid)
@@ -199,3 +200,4 @@ def descargar_pdf(request, proforma_uid):
 
     buffer.seek(0)
     return FileResponse(buffer, as_attachment=True, filename=f'proforma_{proforma.proforma_num}.pdf')
+

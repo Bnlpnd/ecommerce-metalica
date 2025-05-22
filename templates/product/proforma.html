@@ -1,0 +1,232 @@
+{% extends 'home/base.html' %} {% load static %} {% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">PROFORMA</h2>
+
+  <div class="table-responsive">
+    <table id="tabla-proforma" class="table table-bordered align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Cant</th>
+          <th>Tipo de puerta</th>
+          <th>Modelo de puerta</th>
+          <th>Imagen</th>
+          <th>
+            Medidas
+            <button
+              class="btn btn-sm btn-outline-secondary py-0 px-1"
+              onclick="mostrarAyuda()"
+            >
+              ?
+            </button>
+          </th>
+          <th>Color</th>
+          <th>Instalación</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpo-proforma">
+        <tr>
+          <td>
+            <input
+              type="number"
+              name="cantidad"
+              value="1"
+              min="1"
+              class="form-control form-control-sm"
+            />
+          </td>
+          <td>
+            <select
+              class="form-select form-select-sm tipo-puerta"
+              onchange="cargarModelos(this)"
+            >
+              <option value="">Seleccione</option>
+              {% for tipo in tipos_puerta %}
+              <option value="{{ tipo.uid }}">{{ tipo.tipo_name }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td>
+            <select
+              class="form-select form-select-sm modelo-puerta"
+              onchange="actualizarImagen(this)"
+            >
+              <option value="">--</option>
+            </select>
+          </td>
+          <td>
+            <img
+              src=""
+              class="imagen-modelo"
+              width="70"
+              style="display: none; border-radius: 5px"
+            />
+          </td>
+          <td>
+            <input
+              type="text"
+              name="alto"
+              placeholder="Alto"
+              class="form-control form-control-sm mb-1"
+            />
+            <input
+              type="text"
+              name="ancho"
+              placeholder="Ancho"
+              class="form-control form-control-sm"
+            />
+          </td>
+          <td>
+            <input
+              type="text"
+              name="color"
+              class="form-control form-control-sm"
+              placeholder="Ej. Negro mate"
+            />
+          </td>
+          <td class="text-center">
+            <input type="checkbox" name="instalacion" />
+          </td>
+          <td class="text-center">
+            <button
+              class="btn btn-outline-secondary btn-sm"
+              onclick="abrirModal(this)"
+            >
+              Detalle
+            </button>
+            <button class="btn btn-warning btn-sm mx-1">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="eliminarFila(this)">
+              ✖
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <button onclick="añadirFila()" class="btn btn-outline-dark btn-sm mb-3">
+    Añadir producto
+  </button>
+  <br />
+  <button class="btn btn-warning">Enviar proforma</button>
+</div>
+
+<!-- Modal de detalle -->
+<div
+  id="modalDetalle"
+  style="
+    display: none;
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    z-index: 999;
+  "
+>
+  <h5 class="mb-3">Preguntas adicionales</h5>
+  <div class="mb-2">
+    <label>¿Dónde se instalará la puerta?</label>
+    <input type="text" class="form-control form-control-sm" />
+  </div>
+  <div class="mb-2">
+    <label>¿Requiere pintura especial?</label>
+    <input type="text" class="form-control form-control-sm" />
+  </div>
+  <div class="mb-3">
+    <label>¿Tiene alguna medida especial?</label>
+    <input type="text" class="form-control form-control-sm" />
+  </div>
+  <div class="text-end">
+    <button onclick="cerrarModal()" class="btn btn-secondary btn-sm">
+      Cerrar
+    </button>
+  </div>
+</div>
+
+<script>
+  function mostrarAyuda() {
+    alert(
+      "📏 Usa una cinta métrica para medir el alto y ancho del vano donde se instalará la puerta. Mide en centímetros. Asegúrate que el vano esté nivelado."
+    );
+  }
+
+  function cargarModelos(select) {
+    let tipoId = select.value;
+
+    if (!tipoId) {
+      console.warn("No se seleccionó tipo de puerta.");
+      return; // Detiene ejecución si no hay ID válido
+    }
+
+    let row = select.closest("tr");
+    let modeloSelect = row.querySelector(".modelo-puerta");
+    let imagen = row.querySelector(".imagen-modelo");
+
+    modeloSelect.innerHTML = "<option value=''>Cargando...</option>";
+    fetch(`/product/ajax/modelos_por_tipo/?tipo_id=${tipoId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data); // 👈 verifica esto en la consola del navegador
+        modeloSelect.innerHTML = "";
+        data.modelos.forEach((modelo) => {
+          let opt = document.createElement("option");
+          opt.value = modelo.id;
+          opt.textContent = modelo.nombre;
+          opt.dataset.imagen = modelo.imagen_url;
+          modeloSelect.appendChild(opt);
+        });
+        if (data.modelos[0] && data.modelos[0].imagen_url) {
+          imagen.src = data.modelos[0].imagen_url;
+          imagen.style.display = "block";
+        } else {
+          imagen.style.display = "none";
+        }
+      });
+  }
+
+  function actualizarImagen(select) {
+    let row = select.closest("tr");
+    let imagen = row.querySelector(".imagen-modelo");
+    let selected = select.selectedOptions[0];
+    if (selected.dataset.imagen) {
+      imagen.src = selected.dataset.imagen;
+      imagen.style.display = "block";
+    } else {
+      imagen.style.display = "none";
+    }
+  }
+
+  function abrirModal(btn) {
+    document.getElementById("modalDetalle").style.display = "block";
+  }
+
+  function cerrarModal() {
+    document.getElementById("modalDetalle").style.display = "none";
+  }
+
+  function añadirFila() {
+    let tabla = document.getElementById("cuerpo-proforma");
+    let fila = tabla.rows[0].cloneNode(true);
+    fila.querySelectorAll("input, select").forEach((input) => {
+      if (input.type === "checkbox") input.checked = false;
+      else input.value = "";
+    });
+    fila.querySelector(".imagen-modelo").style.display = "none";
+    tabla.appendChild(fila);
+  }
+
+  function eliminarFila(btn) {
+    let row = btn.closest("tr");
+    let tabla = document.getElementById("cuerpo-proforma");
+    if (tabla.rows.length > 1) {
+      row.remove();
+    } else {
+      alert("Debe haber al menos una fila en la proforma.");
+    }
+  }
+</script>
+{% endblock %}

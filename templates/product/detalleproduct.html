@@ -1,0 +1,62 @@
+{% extends "home/base.html" %} {% block content %}
+<div class="container mt-4">
+  <div class="card p-4">
+    <h2 class="mb-3">{{ producto.product_name }}</h2>
+
+    <div class="row">
+      <!-- Imagen del producto -->
+      <div class="col-md-6 text-center">
+        {% if imagen %}
+        <img
+          src="{{ imagen.image.url }}"
+          alt="Imagen del producto"
+          class="img-fluid"
+          style="max-height: 300px; border: 1px solid #ccc"
+        />
+        {% else %}
+        <div
+          style="
+            border: 2px solid #ccc;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          "
+        >
+          <span style="font-size: 3rem">🖼️</span>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Información -->
+      <div class="col-md-6">
+        <h5>Modelo:</h5>
+        <p>{{ producto.product_name }}</p>
+
+        <h5>Listado de materiales:</h5>
+        <ul>
+          {% for mat in materiales %}
+          <li>{{ mat.description }}</li>
+          {% empty %}
+          <li>No hay materiales registrados.</li>
+          {% endfor %}
+        </ul>
+
+        <h5>Detalle del producto:</h5>
+        <p>{{ producto.detalle }}</p>
+
+        <!-- Botones -->
+        <div class="d-flex gap-2 mt-3">
+          <a href="{% url 'galeria' %}" class="btn btn-secondary w-50">
+            Volver
+          </a>
+          <a href="{% url 'proforma' %}" class="btn btn-primary w-50">
+            Cotizar
+          </a>
+        </div>
+        <!-- <a href="{% url 'galeria' %}" class="btn btn-secondary mt-3">Volver</a> -->
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
