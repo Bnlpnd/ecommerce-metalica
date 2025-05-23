@@ -1,0 +1,39 @@
+{% extends 'home/base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">Mis Proformas</h2>
+
+  {% if proformas %}
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Número</th>
+        <th>Fecha</th>
+        <th>Estado</th>
+        <th>Total</th>
+        <th>PDF</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for proforma in proformas %}
+      <tr>
+        <td>{{ proforma.proforma_num }}</td>
+        <td>{{ proforma.fecha }}</td>
+        <td>{{ proforma.estado }}</td>
+        <td>S/. {{ proforma.preciototal }}</td>
+        <td>
+          {% if proforma.pdf %}
+          <a href="{{ proforma.pdf.url }}" target="_blank" class="btn btn-sm btn-primary">Ver PDF</a>
+          {% else %}
+          <span class="text-muted">Sin archivo</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-muted">No tienes proformas registradas.</p>
+  {% endif %}
+</div>
+{% endblock %}

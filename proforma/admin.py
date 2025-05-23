@@ -1,26 +1,24 @@
 from django.contrib import admin
 from .models import *
 
-# Register your models here.
-    
+# Cotizacion inline.
+class CotizacionInline(admin.TabularInline):
+    model = Cotizacion
+    extra = 1  # puedes mostrar más si quieres
 # Proforma
 @admin.register(Proforma)
 class ProformaAdmin(admin.ModelAdmin):
-    list_display = ['proforma_num', 'cliente', 'productmaterial', 'precio', 'precioinstalacion', 'preciototal', 'fecha']
-    list_filter = ['estado', 'fecha', 'cliente', 'productmaterial']
+    list_display = ['proforma_num', 'cliente', 'preciototal', 'fecha']
+    list_filter = ['estado', 'fecha', 'cliente']
     search_fields = ['proforma_num', 'cliente__username']
     readonly_fields = ['fecha', 'slug']
-    autocomplete_fields = ['cliente', 'productmaterial']
+    autocomplete_fields = ['cliente']
+
+    inlines = [CotizacionInline]
 
     fieldsets = (
         ('Datos del cliente y producto', {
-            'fields': ('proforma_num', 'cliente', 'productmaterial')
-        }),
-        ('Medidas y características', {
-            'fields': ('alto', 'ancho', 'color', 'chapa', 'detale_extra')
-        }),
-        ('Precios', {
-            'fields': ('precio', 'precioinstalacion', 'preciototal')
+            'fields': ('proforma_num', 'cliente','preciototal')
         }),
         ('Archivo y seguimiento', {
             'fields': ('pdf', 'fecha', 'slug')
@@ -53,16 +51,18 @@ class ContratoAdmin(admin.ModelAdmin):
     )
     
 
+
+
 @admin.register(Cotizacion)
 class CotizacionAdmin(admin.ModelAdmin):
-    list_display = ['cliente', 'producto', 'estado', 'fecha_creacion','alto', 'ancho','precio', 'color','chapa','cantidad', 'precioinstalacion', 'preciototal']
+    list_display = ['producto', 'proforma','cantidad','alto','ancho','color','chapa', 'precio', 'estado', 'precioinstalacion','fecha_creacion', 'preciototal']
     list_filter = ['estado', 'fecha_creacion']
-    search_fields = ['cliente__username', 'producto__product_name']
+    search_fields = ['producto__product_name']
     readonly_fields = ['fecha_creacion']
 
     fieldsets = (
         ('Información del cliente y producto', {
-            'fields': ('cliente', 'producto')
+            'fields': ('producto','cantidad','alto','ancho','color','chapa','precio','precioinstalacion','preciototal')
         }),
         ('Preguntas del formulario', {
             'fields': ('pregunta_1', 'pregunta_2', 'pregunta_3')

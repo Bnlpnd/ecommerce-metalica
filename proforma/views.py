@@ -13,7 +13,8 @@ from reportlab.pdfgen import canvas
 from io import BytesIO
 from django.core.files.base import ContentFile
 import pandas as pd
-
+from django.utils.text import slugify
+from datetime import date
 
 @login_required
 def solicitar_cotizacion(request, product_uid):
@@ -201,3 +202,90 @@ def descargar_pdf(request, proforma_uid):
     buffer.seek(0)
     return FileResponse(buffer, as_attachment=True, filename=f'proforma_{proforma.proforma_num}.pdf')
 
+@login_required
+def formulario_proforma(request):
+    productos = ProductMaterial.objects.all()
+    return render(request, 'product/proforma.html', {
+        'productos': productos,
+    })
+
+@login_required
+def guardar_proforma(request):
+    if request.method == 'POST':
+        numero = f"P{str(Proforma.objects.count() + 1).zfill(4)}"
+        proforma = Proforma.objects.create(
+            proforma_num=numero,
+            cliente=request.user,
+            preciototal=0,
+            estado="pendiente",
+            fecha=date.today()
+        )
+
+        cantidades = request.POST.getlist('cantidad[]')
+        productos = request.POST.getlist('producto[]')  # uids de ProductMaterial
+        altos = request.POST.getlist('alto[]')
+        anchos = request.POST.getlist('ancho[]')
+        colores = request.POST.getlist('color[]')
+        instalaciones = request.POST.getlist('instalacion[]')
+        preguntas1 = request.POST.getlist('pregunta1[]')
+        preguntas2 = request.POST.getlist('pregunta2[]')
+        preguntas3 = request.POST.getlist('pregunta3[]')
+
+        total_general = 0
+
+        for i in range(len(productos)):
+            print("🔍 Valor recibido:", productos[i])
+
+            try:
+                producto = ProductMaterial.objects.get(uid=productos[i])
+            except ProductMaterial.DoesNotExist:
+                print(f"❌ No existe ProductMaterial con uid={productos[i]}")
+                continue  # salta esa fila
+            
+            
+            cantidad = float(cantidades[i]) if cantidades[i] else 1
+            alto = float(altos[i]) if altos[i] else 0
+            ancho = float(anchos[i]) if anchos[i] else 0
+            color = colores[i]
+            instalar = instalaciones[i] == 'on'
+            p1, p2, p3 = preguntas1[i], preguntas2[i], preguntas3[i]
+
+            precio = 100  # reemplazar luego con lógica real
+            precio_instalacion = 50 if instalar else 0
+            precio_total = (precio * cantidad) + precio_instalacion
+
+            Cotizacion.objects.create(
+                proforma=proforma,
+                producto=producto,
+                cantidad=cantidad,
+                alto=alto,
+                ancho=ancho,
+                color=color,
+                chapa="chapa: izquierda abre: afuera",
+                pregunta_1=p1,
+                pregunta_2=p2,
+                pregunta_3=p3,
+                precio=precio,
+                precioinstalacion=precio_instalacion,
+                preciototal=precio_total
+            )
+
+            total_general += precio_total
+
+        proforma.preciototal = total_general
+        proforma.slug = slugify(numero)
+        proforma.save()
+
+        if total_general == 0:
+            proforma.delete()  # elimina la proforma vacía
+            messages.warning(request, "No se pudo guardar ninguna cotización.")
+            return redirect('formulario_proforma')
+
+        return redirect('mis_proformas')
+
+
+
+@login_required
+def mis_proformas(request):
+    proformas = Proforma.objects.filter(cliente=request.user).order_by('-fecha')
+    return render(request, 'proforma/mis_proformas.html', {'proformas': proformas})

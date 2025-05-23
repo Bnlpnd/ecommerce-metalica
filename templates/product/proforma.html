@@ -2,171 +2,120 @@
 <div class="container mt-4">
   <h2 class="mb-4">PROFORMA</h2>
 
-  <div class="table-responsive">
-    <table id="tabla-proforma" class="table table-bordered align-middle">
-      <thead class="table-light">
-        <tr>
-          <th>Cant</th>
-          <th>Producto</th>
-          <th>Modelo de puerta</th>
-          <th>Imagen</th>
-          <th>
-            Medidas
-            <button
-              class="btn btn-sm btn-outline-secondary py-0 px-1"
-              onclick="mostrarAyuda()"
-            >
-              ?
-            </button>
-          </th>
-          <th>Color</th>
-          <th>Instalación</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="cuerpo-proforma">
-        <tr>
-          <td>
-            <input
-              type="number"
-              name="cantidad"
-              value="1"
-              min="1"
-              class="form-control form-control-sm"
-            />
-          </td>
-          <td>
-            <select
-              class="form-select form-select-sm productos"
-              onchange="cargarModelos(this)"
-            >
-              <option value="">Seleccione</option>
-              {% for producto in productos %}
-              <option value="{{ producto.uid }}">{{ producto.product_name }}</option>
-              {% endfor %}
-            </select>
-          </td>
-          <td>
-            <select
-              class="form-select form-select-sm modelo-puerta"
-              onchange="actualizarImagen(this)"
-            >
-              <option value="">--</option>
-            </select>
-          </td>
-          <td>
-            <img
-              src=""
-              class="imagen-modelo"
-              width="70"
-              style="display: none; border-radius: 5px"
-            />
-          </td>
-          <td>
-            <input
-              type="text"
-              name="alto"
-              placeholder="Alto"
-              class="form-control form-control-sm mb-1"
-            />
-            <input
-              type="text"
-              name="ancho"
-              placeholder="Ancho"
-              class="form-control form-control-sm"
-            />
-          </td>
-          <td>
-            <input
-              type="text"
-              name="color"
-              class="form-control form-control-sm"
-              placeholder="Ej. Negro mate"
-            />
-          </td>
-          <td class="text-center">
-            <input type="checkbox" name="instalacion" />
-          </td>
-          <td class="text-center">
-            <button
-              class="btn btn-outline-secondary btn-sm"
-              onclick="abrirModal(this)"
-            >
-              Detalle
-            </button>
-            <button class="btn btn-warning btn-sm mx-1">✏️</button>
-            <button class="btn btn-danger btn-sm" onclick="eliminarFila(this)">
-              ✖
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <!-- FORMULARIO -->
+  <form method="POST" action="{% url 'guardar_proforma' %}">
+    {% csrf_token %}
 
-  <button onclick="añadirFila()" class="btn btn-outline-dark btn-sm mb-3">
-    Añadir producto
-  </button>
-  <br />
-  <button class="btn btn-warning">Enviar proforma</button>
+    <div class="table-responsive">
+      <table id="tabla-proforma" class="table table-bordered align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Cant</th>
+            <th>Producto</th>
+            <th>Modelo de puerta</th>
+            <th>Imagen</th>
+            <th>
+              Medidas
+              <button
+                class="btn btn-sm btn-outline-secondary py-0 px-1"
+                onclick="mostrarAyuda()"
+                type="button"
+              >
+                ?
+              </button>
+            </th>
+            <th>Color</th>
+            <th>Instalación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="cuerpo-proforma">
+          <tr>
+            <td>
+              <input type="number" name="cantidad[]" value="1" min="1" class="form-control form-control-sm" />
+            </td>
+            <td>
+              <select name="producto[]" class="form-select form-select-sm productos" onchange="cargarModelos(this)">
+                <option value="">Seleccione</option>
+                {% for producto in productos %}
+                <option value="{{ producto.uid }}">{{ producto.product_name }}</option>
+                {% endfor %}
+              </select>
+            </td>
+            <td>
+              <select name="modelo[]" class="form-select form-select-sm modelo-puerta" onchange="actualizarImagen(this)">
+                <option value="">--</option>
+              </select>
+            </td>
+            <td>
+              <img src="" class="imagen-modelo" width="70" style="display: none; border-radius: 5px" />
+            </td>
+            <td>
+              <input type="text" name="alto[]" placeholder="Alto" class="form-control form-control-sm mb-1" />
+              <input type="text" name="ancho[]" placeholder="Ancho" class="form-control form-control-sm" />
+            </td>
+            <td>
+              <input type="text" name="color[]" class="form-control form-control-sm" placeholder="Ej. Negro mate" />
+            </td>
+            <td class="text-center">
+              <input type="checkbox" name="instalacion[]" />
+            </td>
+            <td class="text-center">
+              <button class="btn btn-outline-secondary btn-sm" type="button" onclick="abrirModal(this)">Detalle</button>
+              <button class="btn btn-danger btn-sm" type="button" onclick="eliminarFila(this)">✖</button>
+
+              <!-- CAMPOS OCULTOS para preguntas -->
+              <input type="hidden" name="pregunta1[]" value="" />
+              <input type="hidden" name="pregunta2[]" value="" />
+              <input type="hidden" name="pregunta3[]" value="" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <button type="button" onclick="añadirFila()" class="btn btn-outline-dark btn-sm mb-3">Añadir producto</button>
+    <br />
+    <button type="submit" class="btn btn-success">Enviar proforma</button>
+  </form>
 </div>
 
-<!-- Modal de detalle -->
-<div
-  id="modalDetalle"
-  style="
-    display: none;
-    position: fixed;
-    top: 20%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    border: 1px solid #ccc;
-    z-index: 999;
-  "
->
+<!-- MODAL DETALLE -->
+<div id="modalDetalle" style="display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); background: white; padding: 20px; border-radius: 10px; border: 1px solid #ccc; z-index: 999;">
   <h5 class="mb-3">Preguntas adicionales</h5>
   <div class="mb-2">
     <label>¿Dónde se instalará la puerta?</label>
-    <input type="text" class="form-control form-control-sm" />
+    <input type="text" class="form-control form-control-sm" id="p1" />
   </div>
   <div class="mb-2">
     <label>¿Requiere pintura especial?</label>
-    <input type="text" class="form-control form-control-sm" />
+    <input type="text" class="form-control form-control-sm" id="p2" />
   </div>
   <div class="mb-3">
     <label>¿Tiene alguna medida especial?</label>
-    <input type="text" class="form-control form-control-sm" />
+    <input type="text" class="form-control form-control-sm" id="p3" />
   </div>
   <div class="text-end">
-    <button onclick="cerrarModal()" class="btn btn-secondary btn-sm">
-      Cerrar
-    </button>
+    <button onclick="cerrarModal()" class="btn btn-secondary btn-sm">Cerrar</button>
   </div>
 </div>
 
+<!-- SCRIPTS -->
 <script>
+  let filaActiva = null;
+
   function mostrarAyuda() {
-    alert(
-      "📏 Usa una cinta métrica para medir el alto y ancho del vano donde se instalará la puerta. Mide en centímetros. Asegúrate que el vano esté nivelado."
-    );
+    alert("📏 Usa una cinta métrica para medir el alto y ancho del vano donde se instalará la puerta. Mide en centímetros.");
   }
 
   function cargarModelos(select) {
     let productoId = select.value;
-
-    if (!productoId) {
-      console.warn("No se seleccionó producto.");
-      return; // Detiene ejecución si no hay ID válido
-    }
+    if (!productoId) return;
 
     let row = select.closest("tr");
     let modeloSelect = row.querySelector(".modelo-puerta");
     let imagen = row.querySelector(".imagen-modelo");
 
-    // Reiniciar imagen y opciones
     modeloSelect.innerHTML = "<option value=''>Cargando...</option>";
     imagen.style.display = "none";
     imagen.src = "";
@@ -174,16 +123,12 @@
     fetch(`/product/ajax/modelos_por_tipo/?product_id=${productoId}`)
       .then((response) => response.json())
       .then((data) => {
-        console.log(data); // 👈 verifica esto en la consola del navegador
-        modeloSelect.innerHTML = ""; // Limpiar el select
-
+        modeloSelect.innerHTML = "";
         if (data.modelos.length === 0) {
-          modeloSelect.innerHTML =
-            "<option value=''>Sin modelos disponibles</option>";
+          modeloSelect.innerHTML = "<option value=''>Sin modelos disponibles</option>";
           return;
         }
 
-        // Insertar opciones
         data.modelos.forEach((modelo, index) => {
           let opt = document.createElement("option");
           opt.value = modelo.id;
@@ -191,24 +136,13 @@
           opt.dataset.imagen = modelo.imagen_url;
           modeloSelect.appendChild(opt);
 
-          // Mostrar imagen del primer modelo por defecto
           if (index === 0 && modelo.imagen_url) {
             imagen.src = modelo.imagen_url;
             imagen.style.display = "block";
           }
         });
-      })
-      .catch((error) => {
-        console.error("Error en fetch modelos:", error);
       });
   }
-
-  // Asigna el evento a todos los selects tipo-puerta
-  document.querySelectorAll(".tipo-puerta").forEach((select) => {
-    select.addEventListener("change", function () {
-      cargarModelos(this);
-    });
-  });
 
   function actualizarImagen(select) {
     let row = select.closest("tr");
@@ -224,21 +158,33 @@
   }
 
   function abrirModal(btn) {
+    filaActiva = btn.closest("tr");
+
+    // Rellenar si ya tenía valores
+    document.getElementById("p1").value = filaActiva.querySelector("input[name='pregunta1[]']").value;
+    document.getElementById("p2").value = filaActiva.querySelector("input[name='pregunta2[]']").value;
+    document.getElementById("p3").value = filaActiva.querySelector("input[name='pregunta3[]']").value;
     document.getElementById("modalDetalle").style.display = "block";
   }
 
   function cerrarModal() {
+    if (filaActiva) {
+      filaActiva.querySelector("input[name='pregunta1[]']").value = document.getElementById("p1").value;
+      filaActiva.querySelector("input[name='pregunta2[]']").value = document.getElementById("p2").value;
+      filaActiva.querySelector("input[name='pregunta3[]']").value = document.getElementById("p3").value;
+    }
     document.getElementById("modalDetalle").style.display = "none";
   }
 
   function añadirFila() {
     let tabla = document.getElementById("cuerpo-proforma");
     let fila = tabla.rows[0].cloneNode(true);
-    fila.querySelectorAll("input, select").forEach((input) => {
-      if (input.type === "checkbox") input.checked = false;
-      else input.value = "";
+    fila.querySelectorAll("input, select").forEach((el) => {
+      if (el.type === "checkbox") el.checked = false;
+      else el.value = "";
     });
     fila.querySelector(".imagen-modelo").style.display = "none";
+    fila.querySelector(".imagen-modelo").src = "";
     tabla.appendChild(fila);
   }
 
@@ -248,7 +194,7 @@
     if (tabla.rows.length > 1) {
       row.remove();
     } else {
-      alert("Debe haber al menos una fila en la proforma.");
+      alert("Debe haber al menos una fila.");
     }
   }
 </script>
