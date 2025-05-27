@@ -222,7 +222,7 @@ def guardar_proforma(request):
         )
 
         cantidades = request.POST.getlist('cantidad[]')
-        productos = request.POST.getlist('producto[]')  # uids de ProductMaterial
+        modelos = request.POST.getlist('modelo[]')  # uids de ProductMaterial
         altos = request.POST.getlist('alto[]')
         anchos = request.POST.getlist('ancho[]')
         colores = request.POST.getlist('color[]')
@@ -233,18 +233,18 @@ def guardar_proforma(request):
 
         total_general = 0
 
-        for i in range(len(productos)):
-            print("🔍 Valor recibido:", productos[i])
+        for i in range(len(modelos)):
+            print("🔍 Valor recibido:", modelos[i])
 
             #Product
             try:
-                producto = ProductMaterial.objects.get(uid=productos[i])
-                print(f"Existe Producto")
+                modelo = ProductMaterial.objects.get(uid=modelos[i])
+                print(f"Existe modelo")
             except ProductMaterial.DoesNotExist:
-                print(f"❌ No existe ProductMaterial con uid={productos[i]}")
+                print(f"❌ No existe ProductMaterial con uid={modelos[i]}")
                 continue  # salta esa fila
             
-            
+
             cantidad = float(cantidades[i]) if cantidades[i] else 1
             alto = float(altos[i]) if altos[i] else 0
             ancho = float(anchos[i]) if anchos[i] else 0
@@ -258,7 +258,7 @@ def guardar_proforma(request):
 
             Cotizacion.objects.create(
                 proforma=proforma,
-                producto=producto,
+                producto=modelo,
                 cantidad=cantidad,
                 alto=alto,
                 ancho=ancho,

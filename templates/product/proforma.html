@@ -37,12 +37,8 @@
             <td>
               <select name="producto[]" class="form-select form-select-sm productos" onchange="cargarModelos(this)">
                 <option value="">Seleccione</option>
-                {% for pm in productos %}
-                  {% if pm.product and pm.material %}
-                    <option value="{{ pm.uid }}">
-                      {{ pm.product.product_name }} - {{ pm.material.material_name }}
-                    </option>
-                  {% endif %}
+                {% for producto in productos %}
+                  <option value="{{ producto.uid }}">{{ producto.product_name }}</option>
                 {% endfor %}
               </select>
             </td>
