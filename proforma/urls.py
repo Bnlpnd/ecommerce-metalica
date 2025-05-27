@@ -11,6 +11,6 @@ urlpatterns = [
     path('descargar-pdf/<uuid:proforma_uid>/', views.descargar_pdf, name='descargar_pdf'),
     path('guardar-proforma/', guardar_proforma, name='guardar_proforma'),
     path('mis-proformas/', mis_proformas, name='mis_proformas'),
-    path('proforma/formulario/', formulario_proforma, name='formulario_proforma'),
+    path('formulario/', formulario_proforma, name='formulario_proforma'),
 
 ]

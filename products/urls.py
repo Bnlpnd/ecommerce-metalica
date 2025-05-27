@@ -4,6 +4,7 @@ from .views import *
 urlpatterns = [
     path('galeria', galeria_view, name='galeria'),
     path('detalle/<uuid:uid>/', detalle_producto, name='detalle_producto'),
+    
     # Vista principal de creación de proforma
     path('proforma/', proforma_view, name='proforma'),
 

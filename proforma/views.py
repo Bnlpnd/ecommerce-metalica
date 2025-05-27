@@ -15,6 +15,7 @@ from django.core.files.base import ContentFile
 import pandas as pd
 from django.utils.text import slugify
 from datetime import date
+from products.models import ProductMaterial
 
 @login_required
 def solicitar_cotizacion(request, product_uid):
@@ -206,8 +207,7 @@ def descargar_pdf(request, proforma_uid):
 def formulario_proforma(request):
     productos = ProductMaterial.objects.all()
     return render(request, 'product/proforma.html', {
-        'productos': productos,
-    })
+        'productos': productos})
 
 @login_required
 def guardar_proforma(request):
@@ -236,8 +236,10 @@ def guardar_proforma(request):
         for i in range(len(productos)):
             print("🔍 Valor recibido:", productos[i])
 
+            #Product
             try:
                 producto = ProductMaterial.objects.get(uid=productos[i])
+                print(f"Existe Producto")
             except ProductMaterial.DoesNotExist:
                 print(f"❌ No existe ProductMaterial con uid={productos[i]}")
                 continue  # salta esa fila

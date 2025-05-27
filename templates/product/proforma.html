@@ -37,8 +37,12 @@
             <td>
               <select name="producto[]" class="form-select form-select-sm productos" onchange="cargarModelos(this)">
                 <option value="">Seleccione</option>
-                {% for producto in productos %}
-                <option value="{{ producto.uid }}">{{ producto.product_name }}</option>
+                {% for pm in productos %}
+                  {% if pm.product and pm.material %}
+                    <option value="{{ pm.uid }}">
+                      {{ pm.product.product_name }} - {{ pm.material.material_name }}
+                    </option>
+                  {% endif %}
                 {% endfor %}
               </select>
             </td>
@@ -179,10 +183,17 @@
   function añadirFila() {
     let tabla = document.getElementById("cuerpo-proforma");
     let fila = tabla.rows[0].cloneNode(true);
-    fila.querySelectorAll("input, select").forEach((el) => {
+    fila.querySelectorAll("input").forEach((el) => {
       if (el.type === "checkbox") el.checked = false;
       else el.value = "";
     });
+
+    // 🔥 Resetear selects sin vaciar las opciones
+    fila.querySelectorAll("select").forEach((el) => {
+      el.selectedIndex = 0;
+    });
+
+
     fila.querySelector(".imagen-modelo").style.display = "none";
     fila.querySelector(".imagen-modelo").src = "";
     tabla.appendChild(fila);
