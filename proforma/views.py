@@ -226,7 +226,6 @@ def guardar_proforma(request):
         altos = request.POST.getlist('alto[]')
         anchos = request.POST.getlist('ancho[]')
         colores = request.POST.getlist('color[]')
-        instalaciones = request.POST.getlist('instalacion[]')
         preguntas1 = request.POST.getlist('pregunta1[]')
         preguntas2 = request.POST.getlist('pregunta2[]')
         preguntas3 = request.POST.getlist('pregunta3[]')
@@ -241,7 +240,7 @@ def guardar_proforma(request):
                 modelo = ProductMaterial.objects.get(uid=modelos[i])
                 print(f"Existe modelo")
             except ProductMaterial.DoesNotExist:
-                print(f"❌ No existe ProductMaterial con uid={modelos[i]}")
+                print(f"No existe ProductMaterial con uid={modelos[i]}")
                 continue  # salta esa fila
             
 
@@ -249,10 +248,10 @@ def guardar_proforma(request):
             alto = float(altos[i]) if altos[i] else 0
             ancho = float(anchos[i]) if anchos[i] else 0
             color = colores[i]
-            instalar = instalaciones[i] == 'on'
+            instalar = False
             p1, p2, p3 = preguntas1[i], preguntas2[i], preguntas3[i]
 
-            precio = 100  # reemplazar luego con lógica real
+            precio = 0  # reemplazar luego con lógica real
             precio_instalacion = 50 if instalar else 0
             precio_total = (precio * cantidad) + precio_instalacion
 
@@ -268,7 +267,7 @@ def guardar_proforma(request):
                 pregunta_2=p2,
                 pregunta_3=p3,
                 precio=precio,
-                precioinstalacion=precio_instalacion,
+                precioinstalacion=50 if instalar else 0,
                 preciototal=precio_total
             )
 
@@ -278,7 +277,7 @@ def guardar_proforma(request):
         proforma.slug = slugify(numero)
         proforma.save()
 
-        if total_general == 0:
+        if cantidad == 0:
             proforma.delete()  # elimina la proforma vacía
             messages.warning(request, "No se pudo guardar ninguna cotización.")
             return redirect('formulario_proforma')
