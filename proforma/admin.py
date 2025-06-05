@@ -21,7 +21,7 @@ class ProformaAdmin(admin.ModelAdmin):
             'fields': ('proforma_num', 'cliente','preciototal')
         }),
         ('Archivo y seguimiento', {
-            'fields': ('pdf', 'fecha', 'slug')
+            'fields': ('pdf', 'fecha', 'slug', 'estado')
         }),
     )
     
@@ -55,8 +55,8 @@ class ContratoAdmin(admin.ModelAdmin):
 
 @admin.register(Cotizacion)
 class CotizacionAdmin(admin.ModelAdmin):
-    list_display = ['producto', 'proforma','cantidad','alto','ancho','color','chapa', 'precio', 'estado', 'precioinstalacion','fecha_creacion', 'preciototal']
-    list_filter = ['estado', 'fecha_creacion']
+    list_display = ['producto', 'proforma','cantidad','alto','ancho','color','chapa', 'precio', 'precioinstalacion','fecha_creacion', 'preciototal']
+    list_filter = ['fecha_creacion']
     search_fields = ['producto__product_name']
     readonly_fields = ['fecha_creacion']
 
@@ -68,6 +68,6 @@ class CotizacionAdmin(admin.ModelAdmin):
             'fields': ('pregunta_1', 'pregunta_2', 'pregunta_3')
         }),
         ('Seguimiento', {
-            'fields': ('estado', 'fecha_creacion')
+            'fields': ('fecha_creacion',)
         }),
     )

@@ -1,0 +1,51 @@
+<div class="card mb-3">
+  <div class="card-body">
+    <h5>Cliente: {{ proforma.cliente.get_full_name }}</h5>
+    <p>Fecha: {{ proforma.fecha }} | Estado: {{ proforma.estado }}</p>
+  </div>
+</div>
+
+{% for c in cotizaciones %}
+  <div class="card mb-3">
+    <div class="card-header">
+      {{ c.producto.product.product_name }} - {{ c.producto.material.material_name }}
+      <button class="btn btn-sm btn-outline-primary float-end" onclick="toggleOpciones('{{ c.id }}')">Cotizar</button>
+    </div>
+    <div class="card-body">
+      <p><strong>Alto:</strong> {{ c.alto }} cm | <strong>Ancho:</strong> {{ c.ancho }} cm</p>
+      <p><strong>Color:</strong> {{ c.color }} | <strong>Chapa:</strong> {{ c.chapa }}</p>
+      <p><strong>Preguntas:</strong><br>
+        1. {{ c.pregunta_1 }}<br>
+        2. {{ c.pregunta_2 }}<br>
+        3. {{ c.pregunta_3 }}
+      </p>
+    </div>
+    <!-- Opciones de cotización desplegables -->
+    <div class="card-footer" id="opciones-{{ c.id }}" style="display:none;">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="border p-2 rounded">
+            <h6 class="text-success">Opción Básica</h6>
+            <input type="number" class="form-control form-control-sm mb-1" placeholder="Precio sin instalación" />
+            <input type="number" class="form-control form-control-sm mb-1" placeholder="Precio con instalación" />
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="border p-2 rounded">
+            <h6 class="text-warning">Opción Full</h6>
+            <input type="number" class="form-control form-control-sm mb-1" placeholder="Precio sin instalación" />
+            <input type="number" class="form-control form-control-sm mb-1" placeholder="Precio con instalación" />
+          </div>
+        </div>
+        <!-- Puedes añadir más opciones si quieres -->
+      </div>
+    </div>
+  </div>
+{% endfor %}
+
+<script>
+  function toggleOpciones(id) {
+    const div = document.getElementById("opciones-" + id);
+    div.style.display = div.style.display === "none" ? "block" : "none";
+  }
+</script>

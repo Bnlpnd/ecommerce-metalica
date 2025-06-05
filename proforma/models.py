@@ -12,7 +12,8 @@ class Proforma(BaseModel):
     preciototal = models.DecimalField(max_digits=10, decimal_places=2, default=0) #se le suma si hay instalacion
     cliente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='proformas') 
     pdf = models.FileField(upload_to='proformas_pdfs/', blank=True, null=True)
-            
+    
+    
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.proforma_num)
@@ -33,7 +34,7 @@ class Cotizacion(models.Model):
     pregunta_1 = models.TextField()
     pregunta_2 = models.TextField()
     pregunta_3 = models.TextField()
-    estado = models.CharField(max_length=20, default='pendiente')
+    #estado = models.CharField(max_length=20, default='pendiente')
     precio = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     precioinstalacion = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     preciototal = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)

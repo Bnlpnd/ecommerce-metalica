@@ -1,177 +1,51 @@
-{% extends "home/base.html" %} {% block content %}
-<div class="container">
+{% extends 'home/base.html' %}
+{% block content %}
+
+<div class="container-fluid mt-4">
+  <div class="alert alert-info">
+    Proformas cargadas: {{ proformas|length }}
+  </div>
+
   <div class="row">
     <!-- Bandeja lateral -->
-    <div class="col-md-3 card p-0" style="height: 100vh; overflow-y: auto">
-      <h5 class="p-3">Cotizaciones pendientes</h5>
-      <ul class="list-group list-group-flush">
-        {% for cot in cotizaciones %}
-        <a
-          href="{% url 'bandeja_cotizaciones' cot.id %}"
-          class="list-group-item {% if cot == cotizacion_activa %}active{% endif %}"
-        >
-          <strong
-            >{{ cot.cliente.first_name }} {{cot.cliente.last_name}}</strong
-          >
-          <small>({{cot.cliente.username}})</small>
-          <br />
-          <small>{{cot.producto.product_name}}</small>
-          <br />
-          <small>Hace {{ cot.fecha_creacion|timesince }}</small>
-        </a>
-        {% endfor %}
-      </ul>
+    <div class="col-md-3">
+        <h5 class="mt-2">Proformas pendientes</h5>
+        <div class="list-group">
+            {% for p in proformas %}
+            <a href="#" onclick="mostrarProforma('{{ p.proforma_num }}')" class="list-group-item list-group-item-action">
+                <strong>{{ p.proforma_num }}</strong><br>
+                <small>{{ p.cliente.username }}</small><br>
+                <small>{{ p.fecha|date:"d/m/Y" }}</small>
+            </a>
+
+            {% empty %}
+            <p class="text-muted px-3">No hay proformas pendientes.</p>
+            {% endfor %}
+        </div>
     </div>
 
-    <!-- Vista detalle -->
-    <div class="col-md-9" style="padding-left: 20px">
-      <div class="p-4 rounded border card">
-        {% if cotizacion_activa %}
-        <h4>
-          Solicitud de {{ cotizacion_activa.cliente.first_name }}
-          {{cotizacion_activa.cliente.last_name}}
-          ({{cotizacion_activa.cliente.username}})
-        </h4>
-
-        <div class="row">
-          <!-- Respuestas del cliente -->
-          <div class="col-md-6">
-            <div class="card mb-4">
-              <div class="card-header">
-                <h5 class="card-title">Respuestas del cliente</h5>
-              </div>
-              <div class="card-body">
-                <p>
-                  <strong>Pregunta 1:</strong> {{cotizacion_activa.pregunta_1}}
-                </p>
-                <p>
-                  <strong>Pregunta 2:</strong> {{cotizacion_activa.pregunta_2}}
-                </p>
-                <p>
-                  <strong>Pregunta 3:</strong> {{cotizacion_activa.pregunta_3}}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Formulario para cotizar -->
-          <div class="col-md-6">
-            <div class="card shadow-sm mb-4">
-              <div class="card-header">
-                <h5 class="card-title">Formulario para cotizar</h5>
-              </div>
-              <div class="card-body">
-                {% if messages %} {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-                {% endfor %} {% endif %} {% if precio_calculado is not None %}
-                <div class="alert alert-info mb-3">
-                  <strong>Precio estimado:</strong> S/. {{ precio_calculado }}
-                </div>
-                {% endif %}
-
-                <form
-                  method="POST"
-                  enctype="multipart/form-data"
-                  class="quote-form"
-                >
-                  {% csrf_token %}
-
-                  <div class="form-group mb-3">{{ form.as_p }}</div>
-
-                  <div class="d-flex justify-content-between">
-                    <button
-                      type="submit"
-                      name="predecir"
-                      formnovalidate
-                      class="btn btn-warning px-4 py-2"
-                    >
-                      Predecir costo
-                    </button>
-                    <button
-                      type="submit"
-                      name="guardar"
-                      class="btn btn-primary px-4 py-2"
-                    >
-                      Guardar Proforma
-                    </button>
-                  </div>
-
-                  <!-- class="btn btn-primary px-4 py-2">-->
-                </form>
-
-                {% if proforma %}
-                <a
-                  href="{% url 'descargar_pdf' proforma.uid %}"
-                  class="btn btn-secondary mt-3 px-4 py-2"
-                >
-                  Descargar PDF
-                </a>
-                {% endif %}
-
-                <!--que se añada en el input de precio, calcule automatico el precio total-->
-                {% if precio_calculado is not None%}
-                <script>
-                  document.addEventListener("DOMContentLoaded", function () {
-                    const precioInput = document.querySelector(
-                      "input[name='precio']"
-                    );
-                    const instalacionInput = document.querySelector(
-                      "input[name='precioinstalacion']"
-                    );
-                    const totalInput = document.querySelector(
-                      "input[name='preciototal']"
-                    );
-
-                    const estimado = parseFloat("{{ precio_calculado }}");
-
-                    if (!isNaN(estimado)) {
-                      if (precioInput) {
-                        precioInput.value = estimado;
-                      }
-
-                      function actualizarTotal() {
-                        const precio = parseFloat(precioInput?.value) || 0;
-                        const instalacion =
-                          parseFloat(instalacionInput?.value) || 0;
-                        const total = precio + instalacion;
-
-                        if (totalInput) {
-                          totalInput.value = total.toFixed(2);
-                        }
-                      }
-
-                      // Calcular total al cargar
-                      actualizarTotal();
-
-                      // Recalcular si se modifica el campo de instalación
-                      if (instalacionInput) {
-                        instalacionInput.addEventListener(
-                          "input",
-                          actualizarTotal
-                        );
-                      }
-
-                      // Recalcular si se modifica el campo precio manualmente
-                      if (precioInput) {
-                        precioInput.addEventListener("input", actualizarTotal);
-                      }
-                    } else {
-                      console.warn(
-                        "⚠️ precio_calculado no es un número válido."
-                      );
-                    }
-                  });
-                </script>
-                {% endif %}
-              </div>
-            </div>
-          </div>
-        </div>
-        {% else %}
-        <p>No hay cotizaciones seleccionadas.</p>
-        {% endif %}
-      </div>
+    <!-- Panel derecho: Detalle de proforma -->
+    <div class="col-md-9" id="detalle-proforma">
+      <p class="text-muted">Selecciona una proforma para revisar detalles.</p>
     </div>
   </div>
 </div>
+
+<script>
+  function mostrarProforma(proforma_num) {
+
+    // Cambia la URL en la barra del navegador
+    const nuevaURL = `/proforma/bandeja/${proforma_num}/`;
+    window.history.pushState({ proforma: proforma_num }, '', nuevaURL);
+
+    // Carga el contenido de la proforma
+    fetch(`/proforma/ver/${proforma_num}/`)
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById("detalle-proforma").innerHTML = html;
+      });
+  }
+</script>
+
+
 {% endblock %}
