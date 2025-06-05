@@ -17,5 +17,6 @@ urlpatterns = [
     path('bandeja/<str:proforma_num>/', views.bandeja_trabajador, name='bandeja_trabajador_con_id'),
 
     path('ver/<str:proforma_num>/', views.ver_proforma, name='ver_proforma'),
+    path('guardar-opciones/', views.guardar_opciones_cotizacion, name='guardar_opciones_cotizacion'),
 
 ]

@@ -32,7 +32,7 @@ class Product(BaseModel):
     def __str__(self) -> str:
         return self.product_name
     
-# ProductMaterial 
+# ProductMaterial  
 class ProductMaterial(BaseModel):
     productmaterial_name = models.CharField(max_length=100)
     description = models.TextField(max_length=950, default="") #se agrega el listado de materiales segun el producto que se selecciona

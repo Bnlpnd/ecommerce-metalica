@@ -45,6 +45,17 @@
         document.getElementById("detalle-proforma").innerHTML = html;
       });
   }
+
+  // 👇 Esta función debe estar disponible globalmente
+  function toggleOpciones(id) {
+    const form = document.getElementById("formulario-" + id);
+    if (form) {
+      form.style.display = form.style.display === "none" ? "block" : "none";
+      console.log("✔️ Mostrando formulario de:", id);
+    } else {
+      console.log("❌ No se encontró el formulario:", id);
+    }
+  }
 </script>
 
 

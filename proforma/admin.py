@@ -51,7 +51,9 @@ class ContratoAdmin(admin.ModelAdmin):
     )
     
 
-
+class OpcionCotizacionInline(admin.TabularInline):
+    model = OpcionCotizacion
+    extra = 3  # Hasta 3 opciones por cotización
 
 @admin.register(Cotizacion)
 class CotizacionAdmin(admin.ModelAdmin):
@@ -59,6 +61,7 @@ class CotizacionAdmin(admin.ModelAdmin):
     list_filter = ['fecha_creacion']
     search_fields = ['producto__product_name']
     readonly_fields = ['fecha_creacion']
+    inlines = [OpcionCotizacionInline]
 
     fieldsets = (
         ('Información del cliente y producto', {

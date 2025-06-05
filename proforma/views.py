@@ -181,7 +181,41 @@ def bandeja_trabajador(request, proforma_num=None):
 def ver_proforma(request, proforma_num):
     proforma = get_object_or_404(Proforma, proforma_num=proforma_num)
     cotizaciones = Cotizacion.objects.filter(proforma=proforma)
+    materiales = Material.objects.all()
+    
     return render(request, 'proforma/ver_proforma.html', {
         'proforma': proforma,
-        'cotizaciones': cotizaciones
+        'cotizaciones': cotizaciones,
+        'materiales': materiales
     })
+
+from .models import Cotizacion, OpcionCotizacion
+
+@login_required
+def guardar_opciones_cotizacion(request):
+    if request.method == 'POST':
+        cotizacion_id = request.POST.get('cotizacion_id')
+        cotizacion = get_object_or_404(Cotizacion, id=cotizacion_id)
+
+        titulos = request.POST.getlist('titulo[]')
+        sin_instalacion = request.POST.getlist('precio_sin_instalacion[]')
+        con_instalacion = request.POST.getlist('precio_con_instalacion[]')
+        descripciones = request.POST.getlist('descripcion_adicional[]')
+
+        # Borrar previas si existen
+        cotizacion.opciones.all().delete()
+
+        for i in range(len(titulos)):
+            if titulos[i]:  # solo si se ingresó algo
+                OpcionCotizacion.objects.create(
+                    cotizacion=cotizacion,
+                    titulo=titulos[i],
+                    precio_sin_instalacion=sin_instalacion[i],
+                    precio_con_instalacion=con_instalacion[i],
+                    descripcion_adicional=descripciones[i]
+                )
+
+        messages.success(request, "Opciones de cotización guardadas correctamente.")
+        return redirect('bandeja_trabajador')
+
+    return redirect('home')
