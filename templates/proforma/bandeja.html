@@ -32,13 +32,11 @@
 </div>
 
 <script>
-  function mostrarProforma(proforma_num) {
 
-    // Cambia la URL en la barra del navegador
+  function mostrarProforma(proforma_num) {
     const nuevaURL = `/proforma/bandeja/${proforma_num}/`;
     window.history.pushState({ proforma: proforma_num }, '', nuevaURL);
 
-    // Carga el contenido de la proforma
     fetch(`/proforma/ver/${proforma_num}/`)
       .then(response => response.text())
       .then(html => {
@@ -46,7 +44,6 @@
       });
   }
 
-  // 👇 Esta función debe estar disponible globalmente
   function toggleOpciones(id) {
     const form = document.getElementById("formulario-" + id);
     if (form) {
@@ -56,7 +53,66 @@
       console.log("❌ No se encontró el formulario:", id);
     }
   }
+
+  function predecirPrecio(cotizacionId, index, alto, ancho, productoNombre) {
+    const materialSelectId = `material_${cotizacionId}_${index}`;
+    const materialSelect = document.getElementById(materialSelectId);
+    const materialNombre = materialSelect?.value;
+
+    const precioInputId = `precio_predicho_${cotizacionId}_${index}`;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    console.log("🔍 materialSelect ID:", materialSelectId);
+    console.log("📦 materialNombre:", materialNombre);
+    console.log("📦 productoNombre:", productoNombre);
+    console.log("📦 alto:", alto);
+    console.log("📦 ancho:", ancho);
+
+    if (!materialNombre) {
+      alert("Selecciona un material para predecir el precio.");
+      return;
+    }
+
+    fetch("{% url 'predecir_precio' %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': csrfToken
+      },
+      body: new URLSearchParams({
+        alto: alto,
+        ancho: ancho,
+        producto_nombre: productoNombre,
+        material_nombre: materialNombre
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      console.log("✅ Respuesta:", data);
+      const input = document.getElementById(precioInputId);
+      if (input) input.value = `S/. ${data.precio}`;
+    })
+    .catch(err => {
+      console.error("❌ Error al predecir:", err);
+    });
+  }
+
+  function calcularTotal(cotizacionId, index) {
+    const inst = document.getElementById(`instalacion_${cotizacionId}_${index}`);
+    const real = document.getElementById(`real_${cotizacionId}_${index}`);
+    const total = document.getElementById(`total_${cotizacionId}_${index}`);
+    const cantidadElem = document.getElementById(`cantidad_${cotizacionId}`);
+
+    const precioInstalacion = parseFloat(inst.value) || 0;
+    const precioReal = parseFloat(real.value) || 0;
+    const cantidad = parseFloat(cantidadElem.value) || 1;
+
+    const suma = (precioInstalacion + precioReal) * cantidad;
+    total.value = suma.toFixed(2);
+  }
+
 </script>
+
 
 
 {% endblock %}

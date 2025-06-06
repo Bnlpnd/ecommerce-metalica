@@ -69,9 +69,10 @@ class Contrato(BaseModel):
 class OpcionCotizacion(models.Model):
     cotizacion = models.ForeignKey('Cotizacion', on_delete=models.CASCADE, related_name='opciones')
     titulo = models.CharField(max_length=100)  # Ej: "Básico", "Full", "Premium"
-    precio_sin_instalacion = models.DecimalField(max_digits=10, decimal_places=2)
-    precio_con_instalacion = models.DecimalField(max_digits=10, decimal_places=2)
+    precio_instalacion = models.DecimalField(max_digits=10, decimal_places=2)
     descripcion_adicional = models.TextField(blank=True)  # por si deseas dar detalles
+    preciototal = models.DecimalField(max_digits=10, decimal_places=2, null=True,blank=True)
+    precio_prediccion = models.DecimalField(max_digits=10, decimal_places=2, null=True,blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

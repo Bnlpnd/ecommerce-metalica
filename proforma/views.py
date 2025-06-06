@@ -1,9 +1,9 @@
-from django.http import HttpResponse, HttpResponseForbidden, FileResponse
+from django.http import HttpResponse, HttpResponseForbidden, FileResponse,JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import *
 from .models import *
-from products.models import Product, ProductMaterial
+from products.models import Product, ProductMaterial, Material
 from django.contrib import messages
 from django.conf import settings
 BASE_DIR = settings.BASE_DIR
@@ -15,7 +15,10 @@ from django.core.files.base import ContentFile
 import pandas as pd
 from django.utils.text import slugify
 from datetime import date
-from products.models import ProductMaterial
+from django.views.decorators.csrf import csrf_exempt #no valida el token para hacer pruebas
+
+
+modelo_arbol = joblib.load(os.path.join(BASE_DIR, 'modelo_arbol.pkl'))
 
 @login_required
 def solicitar_cotizacion(request, product_uid):
@@ -189,6 +192,68 @@ def ver_proforma(request, proforma_num):
         'materiales': materiales
     })
 
+@csrf_exempt
+def predecir_precio(request):
+    if request.method == 'POST':
+        try:
+            alto = int(float(request.POST.get('alto', '0').replace(',', '.')))
+            ancho = int(float(request.POST.get('ancho', '0').replace(',', '.')))
+            material_nombre = request.POST.get('material_nombre')
+            producto_nombre = request.POST.get('producto_nombre')
+
+            print("Recibido en backend:")
+            print("Alto:", alto)
+            print("Ancho:", ancho)
+            print("Producto nombre:", producto_nombre)
+            print("Material nombre:", material_nombre)
+            
+            #Clasificacion
+            codigos_producto = {
+                'Porton cochera levadizo': 0,
+                'Porton corredizo 2Hojas': 1,
+                'Porton seccional para cochera': 2,
+                'Puerta con aplicaciones en acero inoxidable': 3,
+                'Puerta enrrollable mas enrejado para negocio de 4 Hojas': 4,
+                'Puerta enrrollable mas enrejado para negocio de barras 2 Hojas': 5,
+                'Puerta enrrollable mas enrejado para negocio rombo 4 Hojas': 6,
+                'Puerta enrrollable para negocio': 7,
+                'Puerta interior barras lineales': 8,
+                'Puerta interior con circulos': 9,
+                'Puerta modelo en arco': 10,
+                'Puerta principal estilo madera': 11
+            }
+
+            codigos_material = {
+                'Material simple': 0,
+                'Material intermedio': 1,
+                'Material resistente': 2
+            }
+            
+            producto_cod = codigos_producto.get(producto_nombre, 0)
+            material_cod = codigos_material.get(material_nombre, 0)
+
+            datos = pd.DataFrame([[alto, ancho, producto_cod, material_cod]],
+                                 columns=['alto', 'ancho', 'producto', 'material'])
+
+            print(f"🔢 Codificados: Producto {producto_cod}, Material {material_cod}")
+
+
+            modelo_path = os.path.join(BASE_DIR, 'modelo_arbol.pkl')
+            if os.path.exists(modelo_path):
+                modelo = joblib.load(modelo_path)
+                pred = modelo.predict(datos)[0]
+                return JsonResponse({'precio': round(pred, 2)})
+            else:
+                print("❌ No se encontró el modelo.")
+                return JsonResponse({'error': 'Modelo no encontrado'}, status=500)
+        
+        except Exception as e:
+            print("❌ Error en predicción:", e)
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
 from .models import Cotizacion, OpcionCotizacion
 
 @login_required
@@ -210,8 +275,7 @@ def guardar_opciones_cotizacion(request):
                 OpcionCotizacion.objects.create(
                     cotizacion=cotizacion,
                     titulo=titulos[i],
-                    precio_sin_instalacion=sin_instalacion[i],
-                    precio_con_instalacion=con_instalacion[i],
+                    precio_instalacion=sin_instalacion[i],
                     descripcion_adicional=descripciones[i]
                 )
 
