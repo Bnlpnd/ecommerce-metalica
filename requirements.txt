@@ -7,3 +7,5 @@ scikit-learn
 xhtml2pdf
 django
 reportlab
+cairocffi 
+tinycss2

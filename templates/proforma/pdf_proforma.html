@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Helvetica, sans-serif; font-size: 11pt; }
+    h2, h3 { color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th, td { border: 1px solid #aaa; padding: 5px; text-align: left; }
+  </style>
+</head>
+<body>
+  <h2>Proforma: {{ proforma.proforma_num }}</h2>
+  <p><strong>Cliente:</strong> {{ proforma.cliente.get_full_name }}</p>
+  <p><strong>Fecha:</strong> {{ proforma.fecha }}</p>
+
+  {% for c in cotizaciones %}
+    <h3>Producto: {{ c.producto.product.product_name }}</h3>
+    <p>Cantidad: {{ c.cantidad }} | Alto: {{ c.alto }} cm | Ancho: {{ c.ancho }} cm</p>
+    <p>Color: {{ c.color }} | Chapa: {{ c.chapa }}</p>
+    <p><strong>Preguntas:</strong><br>
+      1. {{ c.pregunta_1 }}<br>
+      2. {{ c.pregunta_2 }}<br>
+      3. {{ c.pregunta_3 }}
+    </p>
+
+    <table>
+      <tr>
+        <th>Título</th>
+        <th>Precio predicción</th>
+        <th>Precio real</th>
+        <th>Instalación</th>
+        <th>Total</th>
+        <th>Descripción</th>
+      </tr>
+      {% for o in c.opciones.all %}
+        <tr>
+          <td>{{ o.titulo }}</td>
+          <td>S/. {{ o.precio_prediccion }}</td>
+          <td>S/. {{ o.precio_real }}</td>
+          <td>S/. {{ o.precio_instalacion }}</td>
+          <td>S/. {{ o.preciototal }}</td>
+          <td>{{ o.descripcion_adicional }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% endfor %}
+</body>
+</html>

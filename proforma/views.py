@@ -16,6 +16,12 @@ import pandas as pd
 from django.utils.text import slugify
 from datetime import date
 from django.views.decorators.csrf import csrf_exempt #no valida el token para hacer pruebas
+from django.urls import reverse
+from django.template.loader import render_to_string,  get_template
+from .utils.pdf_utils import render_to_pdf
+import tempfile
+from django.http import HttpResponse
+from xhtml2pdf import pisa
 
 
 modelo_arbol = joblib.load(os.path.join(BASE_DIR, 'modelo_arbol.pkl'))
@@ -253,33 +259,87 @@ def predecir_precio(request):
 
     return JsonResponse({'error': 'Método no permitido'}, status=405)
 
-
 from .models import Cotizacion, OpcionCotizacion
 
 @login_required
 def guardar_opciones_cotizacion(request):
     if request.method == 'POST':
-        cotizacion_id = request.POST.get('cotizacion_id')
-        cotizacion = get_object_or_404(Cotizacion, id=cotizacion_id)
+        proforma_id = request.POST.get("proforma_id")
+        proforma = get_object_or_404(Proforma, id=proforma_id)
+        cotizaciones = Cotizacion.objects.filter(proforma=proforma)
+        
+        total_general = 0
+        for c in cotizaciones:
+            precios = request.POST.getlist('preciototal[]')
+            titulos = request.POST.getlist('titulo[]')
+            materiales = request.POST.getlist('material_id[]')
+            descripciones = request.POST.getlist('descripcion_adicional[]')
+            precios_real = request.POST.getlist('precio_real[]')
+            precios_predicho = request.POST.getlist('precio_predicho[]')
+            precios_instalacion = request.POST.getlist('precioinstalacion[]')
 
-        titulos = request.POST.getlist('titulo[]')
-        sin_instalacion = request.POST.getlist('precio_sin_instalacion[]')
-        con_instalacion = request.POST.getlist('precio_con_instalacion[]')
-        descripciones = request.POST.getlist('descripcion_adicional[]')
+            # Solo guarda si hay precio total (primera opción)
+            for i in range(3):
+                try:
+                    pt = float(precios[i])
+                except:
+                    pt = 0
+                if pt > 0:
+                    opcion = OpcionCotizacion.objects.create(
+                        cotizacion=c,
+                        titulo=titulos[i],
+                        precio_instalacion=precios_instalacion[i],
+                        descripcion_adicional=descripciones[i],
+                        preciototal=pt,
+                        precio_prediccion=precios_predicho[i].replace("S/.", "").strip(),
+                        precio_real=precios_real[i]
+                    )
+                    # Suma solo la primera opción válida
+                    if i == 0:
+                        total_general += pt
+                    break  # Solo guarda la primera opción válida
 
-        # Borrar previas si existen
-        cotizacion.opciones.all().delete()
+        # Marcar como atendido y guardar total
+        proforma.estado = "atendido"
+        proforma.preciototal = total_general
 
-        for i in range(len(titulos)):
-            if titulos[i]:  # solo si se ingresó algo
-                OpcionCotizacion.objects.create(
-                    cotizacion=cotizacion,
-                    titulo=titulos[i],
-                    precio_instalacion=sin_instalacion[i],
-                    descripcion_adicional=descripciones[i]
-                )
+        # GENERAR PDF
+        context = {
+            'proforma': proforma,
+            'cotizaciones': cotizaciones,
+        }
+        html_pdf = render_to_string("proforma_pdf.html", context)
+        pdf_file = render_to_pdf(html_pdf)  # esto devuelve un ContentFile
 
-        messages.success(request, "Opciones de cotización guardadas correctamente.")
-        return redirect('bandeja_trabajador')
+        if pdf_file:
+            proforma.pdf.save(f"{proforma.proforma_num}.pdf", pdf_file)
+
+        proforma.save()
+        messages.success(request, "Proforma procesada correctamente.")
+        return redirect('bandeja_cotizaciones')  # cambia por tu URL final
 
     return redirect('home')
+    
+
+
+@csrf_exempt
+def generar_pdf_proforma(request, proforma_num):
+    proforma = get_object_or_404(Proforma, proforma_num=proforma_num)
+    cotizaciones = proforma.cotizaciones.prefetch_related('opciones').all()
+
+    context = {
+        'proforma': proforma,
+        'cotizaciones': cotizaciones
+    }
+
+    pdf_file = render_to_pdf("proforma/pdf_proforma.html", context)
+    
+    if pdf_file:
+        proforma.pdf.save(f"{proforma.proforma_num}.pdf", pdf_file)
+        proforma.estado = "atendido"
+        proforma.save()
+        return redirect('bandeja_trabajador')  # redirige a donde desees
+    else:
+        return HttpResponse("❌ Error generando PDF", status=500)
+    
+    

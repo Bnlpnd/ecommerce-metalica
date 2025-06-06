@@ -76,13 +76,15 @@
       </p>
     </div>
   </div>
-
 {% endfor %}
 
 
+
+
+
 <div class="text-end mt-3">
-  <button onclick="document.getElementById('form-cotizaciones').submit();" class="btn btn-success">
+  <a href="{% url 'generar_pdf_proforma' proforma.proforma_num %}" class="btn btn-success">
     Guardar PDF General
-  </button>
+  </a>
 </div>
 
