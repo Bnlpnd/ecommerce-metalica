@@ -19,7 +19,6 @@ urlpatterns = [
     path('ver/<str:proforma_num>/', views.ver_proforma, name='ver_proforma'),
     path('guardar-opciones/', views.guardar_opciones_cotizacion, name='guardar_opciones_cotizacion'),
     path('predecir-precio/', views.predecir_precio, name='predecir_precio'),
-    path("proforma/guardar-opciones/", views.guardar_opciones_cotizacion, name="guardar_opciones_cotizacion"),
     path('proforma/pdf/<str:proforma_num>/', views.generar_pdf_proforma, name='generar_pdf_proforma'),
 
 ]

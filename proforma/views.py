@@ -192,6 +192,18 @@ def ver_proforma(request, proforma_num):
     cotizaciones = Cotizacion.objects.filter(proforma=proforma)
     materiales = Material.objects.all()
     
+    # Manejar limpieza de opciones
+    limpiar_opciones_id = request.GET.get('limpiar_opciones')
+    if limpiar_opciones_id:
+        try:
+            cotizacion = get_object_or_404(Cotizacion, id=limpiar_opciones_id, proforma=proforma)
+            opciones_eliminadas = cotizacion.opciones.count()
+            cotizacion.opciones.all().delete()
+            messages.success(request, f"Se eliminaron {opciones_eliminadas} opciones de la cotización.")
+            return redirect('ver_proforma', proforma_num=proforma_num)
+        except:
+            messages.error(request, "Error al eliminar las opciones.")
+    
     return render(request, 'proforma/ver_proforma.html', {
         'proforma': proforma,
         'cotizaciones': cotizaciones,
@@ -207,13 +219,14 @@ def predecir_precio(request):
             material_nombre = request.POST.get('material_nombre')
             producto_nombre = request.POST.get('producto_nombre')
 
-            print("Recibido en backend:")
-            print("Alto:", alto)
-            print("Ancho:", ancho)
-            print("Producto nombre:", producto_nombre)
-            print("Material nombre:", material_nombre)
+            print("\n" + "="*50)
+            print("🤖 PREDICCIÓN DE PRECIO CON INTELIGENCIA ARTIFICIAL")
+            print("="*50)
+            print(f"📏 Dimensiones: {alto} x {ancho} cm")
+            print(f"🏷️  Producto: {producto_nombre}")
+            print(f"🔧 Material: {material_nombre}")
             
-            #Clasificacion
+            #Clasificacion para el modelo de Machine Learning
             codigos_producto = {
                 'Porton cochera levadizo': 0,
                 'Porton corredizo 2Hojas': 1,
@@ -238,19 +251,24 @@ def predecir_precio(request):
             producto_cod = codigos_producto.get(producto_nombre, 0)
             material_cod = codigos_material.get(material_nombre, 0)
 
+            print(f"🔢 Codificación para modelo ML:")
+            print(f"   - Producto: '{producto_nombre}' → {producto_cod}")
+            print(f"   - Material: '{material_nombre}' → {material_cod}")
+
             datos = pd.DataFrame([[alto, ancho, producto_cod, material_cod]],
                                  columns=['alto', 'ancho', 'producto', 'material'])
 
-            print(f"🔢 Codificados: Producto {producto_cod}, Material {material_cod}")
-
-
             modelo_path = os.path.join(BASE_DIR, 'modelo_arbol.pkl')
             if os.path.exists(modelo_path):
+                print("🧠 Cargando modelo de Machine Learning...")
                 modelo = joblib.load(modelo_path)
                 pred = modelo.predict(datos)[0]
-                return JsonResponse({'precio': round(pred, 2)})
+                precio_predicho = round(pred, 2)
+                print(f"💡 PREDICCIÓN COMPLETADA: S/.{precio_predicho}")
+                print("="*50)
+                return JsonResponse({'precio': precio_predicho})
             else:
-                print("❌ No se encontró el modelo.")
+                print("❌ ERROR: No se encontró el modelo de ML")
                 return JsonResponse({'error': 'Modelo no encontrado'}, status=500)
         
         except Exception as e:
@@ -264,59 +282,161 @@ from .models import Cotizacion, OpcionCotizacion
 @login_required
 def guardar_opciones_cotizacion(request):
     if request.method == 'POST':
-        proforma_id = request.POST.get("proforma_id")
-        proforma = get_object_or_404(Proforma, id=proforma_id)
-        cotizaciones = Cotizacion.objects.filter(proforma=proforma)
+        print("="*60)
+        print("📋 INICIANDO PROCESO DE GUARDADO DE OPCIONES")
+        print("="*60)
         
-        total_general = 0
-        for c in cotizaciones:
-            precios = request.POST.getlist('preciototal[]')
-            titulos = request.POST.getlist('titulo[]')
-            materiales = request.POST.getlist('material_id[]')
-            descripciones = request.POST.getlist('descripcion_adicional[]')
-            precios_real = request.POST.getlist('precio_real[]')
-            precios_predicho = request.POST.getlist('precio_predicho[]')
-            precios_instalacion = request.POST.getlist('precioinstalacion[]')
+        cotizacion_id = request.POST.get("cotizacion_id")
+        proforma_id = request.POST.get("proforma_id")
+        
+        if not cotizacion_id:
+            messages.error(request, "Error: No se recibió ID de cotización")
+            return redirect('home')
+            
+        cotizacion = get_object_or_404(Cotizacion, id=cotizacion_id)
+        proforma = cotizacion.proforma  # Usar la proforma de la cotización
+        
+        print(f"📍 Procesando cotización ID: {cotizacion_id} | Proforma: {proforma.proforma_num}")
+        print(f"🏷️  Producto: {cotizacion.producto.product.product_name}")
+        
+        # Actualizar campo chapa de la cotización específica
+        chapa_cotizacion = request.POST.get("chapa_cotizacion")
+        if chapa_cotizacion is not None:  # Permite guardar string vacío
+            print(f"🔑 Actualizando chapa de cotización: '{chapa_cotizacion}'")
+            cotizacion.chapa = chapa_cotizacion
+            cotizacion.save()
+            print(f"✅ Chapa guardada exitosamente en cotización")
+        
+        # Obtener datos del formulario - intentar ambos formatos de nombres
+        precios = request.POST.getlist('preciototal[]') or request.POST.getlist('preciototal')
+        titulos = request.POST.getlist('titulo[]') or request.POST.getlist('titulo') 
+        materiales = request.POST.getlist('material_id[]') or request.POST.getlist('material_id')
+        precios_real = request.POST.getlist('precio_real[]') or request.POST.getlist('precio_real')
+        precios_predicho = request.POST.getlist('precio_predicho[]') or request.POST.getlist('precio_predicho')
+        precios_instalacion = request.POST.getlist('precioinstalacion[]') or request.POST.getlist('precioinstalacion')
+        descripciones = request.POST.getlist('descripcion_adicional[]') or request.POST.getlist('descripcion_adicional')
+        
+        print(f"📝 Datos recibidos del formulario:")
+        print(f"   - Títulos: {[t for t in titulos if t]}")
+        print(f"   - Precios reales: {[p for p in precios_real if p]}")
+        print(f"   - Precios instalación: {[p for p in precios_instalacion if p]}")
+        print(f"   - Precios totales: {[p for p in precios if p]}")
 
-            # Solo guarda si hay precio total (primera opción)
-            for i in range(3):
-                try:
-                    pt = float(precios[i])
-                except:
-                    pt = 0
-                if pt > 0:
-                    opcion = OpcionCotizacion.objects.create(
-                        cotizacion=c,
-                        titulo=titulos[i],
-                        precio_instalacion=precios_instalacion[i],
-                        descripcion_adicional=descripciones[i],
+        # Limpiar opciones anteriores de esta cotización
+        opciones_anteriores = OpcionCotizacion.objects.filter(cotizacion=cotizacion).count()
+        if opciones_anteriores > 0:
+            print(f"🧹 Eliminando {opciones_anteriores} opciones anteriores de la cotización")
+        OpcionCotizacion.objects.filter(cotizacion=cotizacion).delete()
+
+        print("\n" + "="*40)
+        print("💾 PROCESANDO OPCIONES DE COTIZACIÓN")
+        print("="*40)
+        
+        # Guarda todas las opciones que tengan datos válidos
+        opciones_guardadas = 0
+        total_campos = max(len(precios), len(titulos), len(precios_real), len(precios_instalacion), len(precios_predicho), len(descripciones))
+        
+        primera_opcion_datos = None  # Para guardar los datos de la primera opción válida
+        
+        for i in range(total_campos):
+            try:
+                # Obtener valores con validación de índices
+                titulo = titulos[i].strip() if i < len(titulos) and titulos[i] else ""
+                pt = float(precios[i]) if i < len(precios) and precios[i] else 0
+                pr = float(precios_real[i]) if i < len(precios_real) and precios_real[i] else 0
+                pi = float(precios_instalacion[i]) if i < len(precios_instalacion) and precios_instalacion[i] else 0
+                descripcion = descripciones[i].strip() if i < len(descripciones) and descripciones[i] else ""
+                
+                # Solo guarda si tiene al menos título o algún precio
+                if titulo or pt > 0 or pr > 0 or pi > 0 or descripcion:
+                    # Obtener y limpiar precio predicho
+                    precio_pred = 0
+                    if i < len(precios_predicho) and precios_predicho[i]:
+                        precio_pred_str = precios_predicho[i]
+                        # Limpiar el precio predicho de formato
+                        precio_pred_str = precio_pred_str.replace("S/.", "").replace(",", "").strip()
+                        try:
+                            precio_pred = float(precio_pred_str)
+                        except ValueError:
+                            precio_pred = 0
+                    
+                    print(f"➕ Creando opción {opciones_guardadas + 1}: '{titulo or f'Opción {i+1}'}'")
+                    print(f"   💰 Precio real: S/.{pr} | Instalación: S/.{pi} | Total: S/.{pt}")
+                    
+                    nueva_opcion = OpcionCotizacion.objects.create(
+                        cotizacion=cotizacion,
+                        titulo=titulo or f"Opción {i+1}",
+                        precio_instalacion=pi,
+                        descripcion_adicional=descripcion,
                         preciototal=pt,
-                        precio_prediccion=precios_predicho[i].replace("S/.", "").strip(),
-                        precio_real=precios_real[i]
+                        precio_prediccion=precio_pred,
+                        precio_real=pr
                     )
-                    # Suma solo la primera opción válida
-                    if i == 0:
-                        total_general += pt
-                    break  # Solo guarda la primera opción válida
+                    
+                    opciones_guardadas += 1
+                    
+                    # Guardar datos de la primera opción válida para actualizar la cotización
+                    if primera_opcion_datos is None:
+                        primera_opcion_datos = {
+                            'precio': pr,  # precio real va a campo precio
+                            'precioinstalacion': pi,
+                            'preciototal': pt
+                        }
+                        print(f"⭐ PRIMERA OPCIÓN seleccionada para actualizar cotización")
+                    
+            except (ValueError, IndexError) as e:
+                continue
+        
+        print(f"✅ Total de opciones guardadas: {opciones_guardadas}")
 
-        # Marcar como atendido y guardar total
-        proforma.estado = "atendido"
+        print("\n" + "="*40)
+        print("🔄 ACTUALIZANDO DATOS DE COTIZACIÓN")
+        print("="*40)
+        
+        # Actualizar la cotización con los valores de la primera opción
+        if primera_opcion_datos:
+            print(f"📊 Aplicando datos de primera opción a cotización:")
+            print(f"   - Precio base: S/.{primera_opcion_datos['precio']}")
+            print(f"   - Precio instalación: S/.{primera_opcion_datos['precioinstalacion']}")
+            print(f"   - Precio total: S/.{primera_opcion_datos['preciototal']}")
+            
+            cotizacion.precio = primera_opcion_datos['precio']
+            cotizacion.precioinstalacion = primera_opcion_datos['precioinstalacion']
+            cotizacion.preciototal = primera_opcion_datos['preciototal']
+            cotizacion.save()
+            print(f"✅ Cotización actualizada exitosamente")
+        else:
+            print("⚠️  No se encontró primera opción válida para actualizar cotización")
+
+        print("\n" + "="*40)
+        print("🧮 RECALCULANDO TOTAL DE PROFORMA")
+        print("="*40)
+        
+        # Recalcular total general de la proforma sumando las cotizaciones (no las opciones)
+        total_general = 0
+        cotizaciones_con_precio = 0
+        
+        for cot in proforma.cotizaciones.all():
+            if cot.preciototal:
+                total_general += cot.preciototal
+                cotizaciones_con_precio += 1
+                print(f"   + Cotización {cot.id} ({cot.producto.product.product_name}): S/.{cot.preciototal}")
+
+        print(f"📊 RESUMEN DE CÁLCULO:")
+        print(f"   - Cotizaciones con precio: {cotizaciones_con_precio}")
+        print(f"   - Total general de proforma: S/.{total_general}")
+
+        # Actualizar proforma
         proforma.preciototal = total_general
-
-        # GENERAR PDF
-        context = {
-            'proforma': proforma,
-            'cotizaciones': cotizaciones,
-        }
-        html_pdf = render_to_string("proforma_pdf.html", context)
-        pdf_file = render_to_pdf(html_pdf)  # esto devuelve un ContentFile
-
-        if pdf_file:
-            proforma.pdf.save(f"{proforma.proforma_num}.pdf", pdf_file)
-
         proforma.save()
-        messages.success(request, "Proforma procesada correctamente.")
-        return redirect('bandeja_cotizaciones')  # cambia por tu URL final
+        print(f"✅ Proforma {proforma.proforma_num} actualizada con precio total: S/.{total_general}")
+        
+        print("\n" + "="*60)
+        print("🎉 PROCESO COMPLETADO EXITOSAMENTE")
+        print("="*60)
+        
+        messages.success(request, "Guardado correctamente")
+        return redirect('ver_proforma', proforma_num=proforma.proforma_num)
 
     return redirect('home')
     
@@ -324,22 +444,64 @@ def guardar_opciones_cotizacion(request):
 
 @csrf_exempt
 def generar_pdf_proforma(request, proforma_num):
+    print("\n" + "="*60)
+    print("📄 INICIANDO GENERACIÓN DE PDF FINAL")
+    print("="*60)
+    
     proforma = get_object_or_404(Proforma, proforma_num=proforma_num)
     cotizaciones = proforma.cotizaciones.prefetch_related('opciones').all()
+    
+    print(f"📋 Generando PDF para proforma: {proforma.proforma_num}")
+    print(f"👤 Cliente: {proforma.cliente.get_full_name()}")
+    print(f"💰 Precio total de proforma: S/.{proforma.preciototal}")
+    print(f"📦 Cotizaciones incluidas: {cotizaciones.count()}")
+
+    # Si es POST, actualizar datos de chapa antes de generar PDF
+    if request.method == 'POST':
+        print("\n🔄 Actualizando chapas finales antes de generar PDF...")
+        # Actualizar chapa de cada cotización
+        for cotizacion in cotizaciones:
+            chapa_key = f'chapa_{cotizacion.id}'
+            if chapa_key in request.POST:
+                cotizacion.chapa = request.POST[chapa_key]
+                cotizacion.save()
+                print(f"   🔑 Chapa actualizada para cotización {cotizacion.id}: '{cotizacion.chapa}'")
+
+    # Mostrar resumen de contenido del PDF
+    print("\n📊 CONTENIDO DEL PDF:")
+    for i, cotizacion in enumerate(cotizaciones, 1):
+        print(f"   {i}. {cotizacion.producto.product.product_name}")
+        print(f"      💰 Precio cotización: S/.{cotizacion.preciototal}")
+        print(f"      🔑 Chapa: {cotizacion.chapa}")
+        opciones_count = cotizacion.opciones.count()
+        print(f"      📋 Opciones disponibles: {opciones_count}")
 
     context = {
         'proforma': proforma,
         'cotizaciones': cotizaciones
     }
 
+    print("\n🔄 Generando archivo PDF...")
     pdf_file = render_to_pdf("proforma/pdf_proforma.html", context)
     
     if pdf_file:
+        print("✅ PDF generado exitosamente")
         proforma.pdf.save(f"{proforma.proforma_num}.pdf", pdf_file)
+        print(f"💾 Archivo guardado: {proforma.proforma_num}.pdf")
+        
+        print(f"🔄 Cambiando estado de proforma de '{proforma.estado}' a 'atendido'")
         proforma.estado = "atendido"
         proforma.save()
-        return redirect('bandeja_trabajador')  # redirige a donde desees
+        
+        print("\n" + "="*60)
+        print("🎉 PROCESO DE GENERACIÓN PDF COMPLETADO")
+        print(f"📄 Proforma {proforma.proforma_num} marcada como ATENDIDA")
+        print("="*60)
+        
+        messages.success(request, "Generado correctamente")
+        return redirect('bandeja_trabajador')  # Bandeja se filtra automáticamente a pendientes
     else:
+        print("❌ ERROR: No se pudo generar el archivo PDF")
         return HttpResponse("❌ Error generando PDF", status=500)
     
     

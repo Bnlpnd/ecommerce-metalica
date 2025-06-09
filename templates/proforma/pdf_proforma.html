@@ -15,35 +15,47 @@
   <p><strong>Fecha:</strong> {{ proforma.fecha }}</p>
 
   {% for c in cotizaciones %}
-    <h3>Producto: {{ c.producto.product.product_name }}</h3>
-    <p>Cantidad: {{ c.cantidad }} | Alto: {{ c.alto }} cm | Ancho: {{ c.ancho }} cm</p>
-    <p>Color: {{ c.color }} | Chapa: {{ c.chapa }}</p>
-    <p><strong>Preguntas:</strong><br>
-      1. {{ c.pregunta_1 }}<br>
-      2. {{ c.pregunta_2 }}<br>
-      3. {{ c.pregunta_3 }}
-    </p>
+    {% with opciones_con_precio=c.opciones.all %}
+    {% if opciones_con_precio %}
+      <h3>Producto: {{ c.producto.product.product_name }}</h3>
+      <p>Cantidad: {{ c.cantidad }} | Alto: {{ c.alto }} cm | Ancho: {{ c.ancho }} cm</p>
+      <p>Color: {{ c.color }} | <strong>Chapa:</strong> {{ c.chapa }}</p>
+      <p><strong>Preguntas:</strong><br>
+        1. {{ c.pregunta_1 }}<br>
+        2. {{ c.pregunta_2 }}<br>
+        3. {{ c.pregunta_3 }}
+      </p>
 
-    <table>
-      <tr>
-        <th>Título</th>
-        <th>Precio predicción</th>
-        <th>Precio real</th>
-        <th>Instalación</th>
-        <th>Total</th>
-        <th>Descripción</th>
-      </tr>
-      {% for o in c.opciones.all %}
+      <table>
         <tr>
-          <td>{{ o.titulo }}</td>
-          <td>S/. {{ o.precio_prediccion }}</td>
-          <td>S/. {{ o.precio_real }}</td>
-          <td>S/. {{ o.precio_instalacion }}</td>
-          <td>S/. {{ o.preciototal }}</td>
-          <td>{{ o.descripcion_adicional }}</td>
+          <th>Título</th>
+          <th>Materiales</th>
+          <th>Precio predicción</th>
+          <th>Precio real</th>
+          <th>Instalación</th>
+          <th>Total</th>
         </tr>
-      {% endfor %}
-    </table>
+        {% for o in opciones_con_precio %}
+          {% if o.preciototal and o.preciototal > 0 %}
+          <tr>
+            <td>{{ o.titulo }}</td>
+            <td>{{ o.descripcion_adicional }}</td>
+            <td>S/. {{ o.precio_prediccion }}</td>
+            <td>S/. {{ o.precio_real }}</td>
+            <td>S/. {{ o.precio_instalacion }}</td>
+            <td>S/. {{ o.preciototal }}</td>
+          </tr>
+          {% endif %}
+        {% endfor %}
+      </table>
+    {% endif %}
+    {% endwith %}
   {% endfor %}
+
+  <div style="margin-top: 30px;">
+    <p>Según mi recomendación de acuerdo a sus necesidades, le sugiero las primeras opciones de cada cotización.</p>
+    <p>Le adjunto el detalle de cada cotización con los precios de cada opción y el precio total General según mi recomendación.</p>
+    <p><strong>Total General: S/. {{ proforma.preciototal }}</strong></p>
+  </div>
 </body>
 </html>
