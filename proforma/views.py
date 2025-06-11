@@ -22,6 +22,9 @@ from .utils.pdf_utils import render_to_pdf
 import tempfile
 from django.http import HttpResponse
 from xhtml2pdf import pisa
+from django.core.mail import EmailMessage
+from django.conf import settings
+from django.core.files.storage import default_storage
 
 
 modelo_arbol = joblib.load(os.path.join(BASE_DIR, 'modelo_arbol.pkl'))
@@ -493,12 +496,53 @@ def generar_pdf_proforma(request, proforma_num):
         proforma.estado = "atendido"
         proforma.save()
         
+        #####
+        
+        subject = f"Proforma {proforma.proforma_num} atendida"
+        message = (
+            f"Estimado/a {proforma.cliente.get_full_name()},\n\n"
+            f"Su proforma número {proforma.proforma_num} ha sido atendida. "
+            "Adjuntamos el documento PDF con el detalle de su proforma.\n\n"
+            "Gracias por confiar en nosotros."
+        )
+        
+        if proforma.cliente.email:
+            recipient = [proforma.cliente.email]
+            email = EmailMessage(
+                subject=subject,
+                body=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=recipient,
+                bcc=["zoila.benel@gmail.com"]  # copia oculta para ti
+            )
+
+            # Adjuntar el PDF generado
+            if proforma.pdf:
+                pdf_path = proforma.pdf.path  # Ruta completa del archivo en disco
+                with open(pdf_path, 'rb') as f:
+                    email.attach(f"{proforma.proforma_num}.pdf", f.read(), 'application/pdf')
+            else:
+                print("⚠️ No se encontró el archivo PDF para adjuntar.")
+
+            try:
+                email.send()
+                print("📧 Correo enviado al cliente con la proforma adjunta.")
+
+            except Exception as e:
+                print(f"❌ Error enviando correo: {e}")
+        else:
+            print("⚠️ El cliente no tiene un correo electrónico registrado.")
+            messages.warning(request, "Proforma generada, pero el cliente no tiene correo registrado.")
+
+        
+        ######
+        
         print("\n" + "="*60)
         print("🎉 PROCESO DE GENERACIÓN PDF COMPLETADO")
         print(f"📄 Proforma {proforma.proforma_num} marcada como ATENDIDA")
         print("="*60)
         
-        messages.success(request, "Generado correctamente")
+        messages.success(request, f"Proforma {proforma.proforma_num} generada y enviada al correo del cliente.")
         return redirect('bandeja_trabajador')  # Bandeja se filtra automáticamente a pendientes
     else:
         print("❌ ERROR: No se pudo generar el archivo PDF")
