@@ -7,8 +7,8 @@
   <table class="table table-bordered">
     <thead>
       <tr>
-        <th>Número</th>
-        <th>Fecha</th>
+        <th>Num Proforma</th>
+        <th>Fecha solicitud</th>
         <th>Estado</th>
         <th>Total</th>
         <th>PDF</th>
@@ -18,7 +18,7 @@
       {% for proforma in proformas %}
       <tr>
         <td>{{ proforma.proforma_num }}</td>
-        <td>{{ proforma.fecha }}</td>
+        <td>{{ proforma.fecha|date:"d/m/Y" }}</td>
         <td>{{ proforma.estado }}</td>
         <td>S/. {{ proforma.preciototal }}</td>
         <td>
@@ -27,6 +27,15 @@
           {% else %}
           <span class="text-muted">Sin archivo</span>
           {% endif %}
+        </td>
+        <td>
+          {% with limite=proforma.fecha|add:"20"|date:"U" hoy=now|date:"U" %}
+            {% if hoy <= limite %}
+              <a href="{% url 'generar_contrato' proforma.proforma_num %}" class="btn btn-success btn-sm">Contrato</a>
+            {% else %}
+              <button class="btn btn-secondary btn-sm" disabled>Vencido</button>
+            {% endif %}
+          {% endwith %}
         </td>
       </tr>
       {% endfor %}

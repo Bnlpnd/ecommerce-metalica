@@ -9,12 +9,16 @@ from django.conf import settings
 BASE_DIR = settings.BASE_DIR
 import joblib
 import os
+from django.utils import timezone
+
+from django.utils.timezone import now
+from datetime import timedelta
 from reportlab.pdfgen import canvas
 from io import BytesIO
 from django.core.files.base import ContentFile
 import pandas as pd
 from django.utils.text import slugify
-from datetime import date
+from datetime import timedelta, date
 from django.views.decorators.csrf import csrf_exempt #no valida el token para hacer pruebas
 from django.urls import reverse
 from django.template.loader import render_to_string,  get_template
@@ -25,7 +29,7 @@ from xhtml2pdf import pisa
 from django.core.mail import EmailMessage
 from django.conf import settings
 from django.core.files.storage import default_storage
-
+import uuid
 
 modelo_arbol = joblib.load(os.path.join(BASE_DIR, 'modelo_arbol.pkl'))
 
@@ -73,7 +77,6 @@ def bandeja_cotizaciones(request, cotizacion_id=None):
         })
         
     return render(request, 'proforma/bandeja.html', {'proformas': proformas})
-
 
 def descargar_pdf(request, proforma_uid):
     proforma = Proforma.objects.get(uid=proforma_uid)
@@ -189,7 +192,7 @@ def bandeja_trabajador(request, proforma_num=None):
     return render(request, 'proforma/bandeja.html', {'proformas': proformas,
         'proforma_seleccionada': proforma_num})
 
-@login_required
+
 def ver_proforma(request, proforma_num):
     proforma = get_object_or_404(Proforma, proforma_num=proforma_num)
     cotizaciones = Cotizacion.objects.filter(proforma=proforma)
@@ -213,7 +216,7 @@ def ver_proforma(request, proforma_num):
         'materiales': materiales
     })
 
-@csrf_exempt
+@login_required
 def predecir_precio(request):
     if request.method == 'POST':
         try:
@@ -279,10 +282,7 @@ def predecir_precio(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Método no permitido'}, status=405)
-
-from .models import Cotizacion, OpcionCotizacion
-
-@login_required
+ 
 def guardar_opciones_cotizacion(request):
     if request.method == 'POST':
         print("="*60)
@@ -438,14 +438,20 @@ def guardar_opciones_cotizacion(request):
         print("🎉 PROCESO COMPLETADO EXITOSAMENTE")
         print("="*60)
         
-        messages.success(request, "Guardado correctamente")
-        return redirect('ver_proforma', proforma_num=proforma.proforma_num)
+        # Si es AJAX, devolver JSON
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': 'Opciones guardadas correctamente',
+                'precio_total_proforma': float(proforma.preciototal),
+                'cotizacion_id': cotizacion.id,
+            })
 
+        messages.success(request, "Guardado correctamente")
+        return redirect('ver_proforma', proforma.proforma_num)
     return redirect('home')
     
-
-
-@csrf_exempt
+@login_required
 def generar_pdf_proforma(request, proforma_num):
     print("\n" + "="*60)
     print("📄 INICIANDO GENERACIÓN DE PDF FINAL")
@@ -548,4 +554,64 @@ def generar_pdf_proforma(request, proforma_num):
         print("❌ ERROR: No se pudo generar el archivo PDF")
         return HttpResponse("❌ Error generando PDF", status=500)
     
-    
+@login_required
+def generar_contrato(request, proforma_num):
+    proforma = get_object_or_404(Proforma, proforma_num=proforma_num)
+
+    # Verificar si la proforma tiene menos de 20 días
+    if (date.today() - proforma.fecha).days > 20:
+        messages.warning(request, "La proforma ha vencido y no se puede generar un contrato.")
+        return redirect('mis_proformas')
+
+    cotizaciones = proforma.cotizaciones.prefetch_related('opciones').all()
+
+    if request.method == 'POST':
+        opcion_ids = request.POST.getlist('opcion_cotizacion')
+        acuenta = float(request.POST.get('acuenta'))
+        fecha_entrega = request.POST.get('fechaEntrega')
+        detalle_extra = request.POST.get('detalle_extra', '')
+
+        # Calcular total y saldo
+        total = 0
+        for opcion_id in opcion_ids:
+            opcion = OpcionCotizacion.objects.get(id=opcion_id)
+            total += float(opcion.preciototal)
+
+        saldo = total - acuenta
+
+        contrato_num = f"C{str(uuid.uuid4())[:8].upper()}"
+        contrato = Contrato.objects.create(
+            contrato_num=contrato_num,
+            cantidad=len(opcion_ids),
+            preciototal=total,
+            acuenta=acuenta,
+            saldo=saldo,
+            fechaEntrega=fecha_entrega,
+            detale_extra=detalle_extra,
+            proforma=proforma
+        )
+
+        # Relacionar opciones seleccionadas
+        for opcion_id in opcion_ids:
+            opcion = OpcionCotizacion.objects.get(id=opcion_id)
+            OpcionContrato.objects.create(
+                contrato=contrato,
+                cotizacion=opcion.cotizacion,
+                opcion=opcion
+            )
+
+        # Generar PDF del contrato
+        context = {'contrato': contrato, 'opciones': contrato.opciones_elegidas.all()}
+        pdf_file = render_to_pdf('proforma/pdf_contrato.html', context)
+        if pdf_file:
+            contrato.pdf.save(f"{contrato.contrato_num}.pdf", ContentFile(pdf_file.read()))
+            messages.success(request, "Contrato generado correctamente.")
+        else:
+            messages.warning(request, "Contrato creado pero no se pudo generar el PDF.")
+
+        return redirect('mis_proformas')
+
+    return render(request, 'proforma/seleccionar_opciones_contrato.html', {
+        'proforma': proforma,
+        'cotizaciones': cotizaciones
+    })

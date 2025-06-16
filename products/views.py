@@ -28,7 +28,6 @@ def galeria_view(request):
     }
     return render(request, 'product/galeria.html', contexto)
 
-
 def detalle_producto(request, uid):
     modelo = get_object_or_404(ProductMaterial, uid=uid)
     imagen = modelo.product_images.first() if modelo else None

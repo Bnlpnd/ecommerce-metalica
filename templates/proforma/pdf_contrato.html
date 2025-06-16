@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Contrato {{ contrato.contrato_num }}</title>
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 12px; margin: 40px; }
+    h1 { text-align: center; }
+    .datos, .opciones, .totales { margin-top: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    th { background-color: #eee; }
+    .firma { margin-top: 60px; text-align: center; }
+    .firma div { display: inline-block; width: 40%; }
+  </style>
+</head>
+<body>
+
+  <h1>Contrato {{ contrato.contrato_num }}</h1>
+
+  <div class="datos">
+    <strong>Cliente:</strong> {{ contrato.proforma.cliente.get_full_name }}<br>
+    <strong>Fecha de contrato:</strong> {{ contrato.fecha }}<br>
+    <strong>Fecha de entrega:</strong> {{ contrato.fechaEntrega }}<br>
+    <strong>Num proforma:</strong> {{ contrato.proforma.proforma_num }}
+  </div>
+
+  <div class="opciones">
+    <h3>Detalle de los productos</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Modelo puerta</th>
+          <th>Opción</th>
+          <th>Materiales</th>
+          <th>Precio instalacion</th>
+          <th>Precio total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in opciones %}
+        <tr>
+          <td>{{ item.cotizacion.producto.product.product_name }}</td>
+          <td>{{ item.opcion.titulo }}</td>
+          <td>{{ item.opcion.descripcion_adicional|default:"-" }}</td>
+          <td>S/. {{ item.opcion.precio_instalacion|floatformat:2 }}</td>
+          <td>S/. {{ item.opcion.preciototal|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="totales">
+    <p><strong>Total:</strong> S/. {{ contrato.preciototal|floatformat:2 }}</p>
+    <p><strong>A cuenta:</strong> S/. {{ contrato.acuenta|floatformat:2 }}</p>
+    <p><strong>Saldo:</strong> S/. {{ contrato.saldo|floatformat:2 }}</p>
+    <p><strong>Detalle adicional:</strong> {{ contrato.detale_extra|default:"-" }}</p>
+  </div>
+
+</body>
+</html>

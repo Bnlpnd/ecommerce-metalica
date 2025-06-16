@@ -37,19 +37,28 @@
       </li>
 
       {% if user.is_authenticated and user.profile.rol == 'trabajador' %}
-      <li>
-        <a
-          href="{% url 'bandeja_trabajador' %}"
-          class="nav-link px-2 text-secondary"
-          >Bandeja</a
-        >
-      </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle px-2 text-secondary" href="#" id="trabajadorDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Analítica
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="trabajadorDropdown">
+            <li><a class="dropdown-item" href="{% url 'bandeja_trabajador' %}">Bandeja Proformas</a></li>
+            <li><a class="dropdown-item" href="#">Estado Proformas</a></li>
+            <li><a class="dropdown-item" href="#">Estado Contratos</a></li>
+          </ul>
+        </li>
+      {% elif user.is_authenticated and user.profile.rol == 'cliente' %}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle px-2 text-secondary" href="#" id="clienteDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Usuarios
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="clienteDropdown">
+            <li><a class="dropdown-item" href="#">Mi Perfil</a></li>
+            <li><a class="dropdown-item" href="{% url 'mis_proformas' %}">Mis Proformas</a></li>
+            <li><a class="dropdown-item" href="#">Mis Contratos</a></li>
+          </ul>
+        </li>
       {% endif %}
-
-      <li>
-        <a href="{% url 'mis_proformas' %}" class="nav-link px-2 text-secondary">Mis Proformas</a>
-      </li>
-
     </ul>
 
     <div class="col-md-3 text-end">

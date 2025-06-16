@@ -12,7 +12,6 @@ from base.tokens import account_activation_token
 
 
 def login_view(request):
-    
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
@@ -38,7 +37,6 @@ def login_view(request):
     return render(request ,'accounts/login.html')
 
 def register(request):
-
     if request.method == 'POST':
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
@@ -106,7 +104,7 @@ def activate_email(request , email_token):
     except Profile.DoesNotExist:
         messages.error(request, 'Invalid email token')
         return HttpResponse('Invalid Email token')
-    
+   
 def logout_view(request):
     logout(request)
     return redirect('login')
@@ -172,7 +170,6 @@ def change_password(request):
     return render(request, 'accounts/change_password.html')
 
 def forgot_password(request):
-
     if request.method == 'POST':
         email = request.POST.get('email')
         user = User.objects.filter(username=email).first()

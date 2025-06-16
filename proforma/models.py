@@ -22,7 +22,6 @@ class Proforma(BaseModel):
     def __str__(self) -> str:
         return f'Proforma numero {self.proforma_num}'
 
-
 class Cotizacion(models.Model):
     proforma = models.ForeignKey(Proforma, on_delete=models.CASCADE, related_name='cotizaciones')
     producto = models.ForeignKey(ProductMaterial, on_delete=models.CASCADE, related_name='cotizaciones')
@@ -43,7 +42,6 @@ class Cotizacion(models.Model):
     def __str__(self):
         return f'Cotización agregada'
     
-
 # contrato 
 class Contrato(BaseModel):
     contrato_num = models.CharField(max_length=100) #C0001
@@ -65,7 +63,6 @@ class Contrato(BaseModel):
     def __str__(self) -> str:
         return self.contrato_num
 
-
 class OpcionCotizacion(models.Model):
     cotizacion = models.ForeignKey('Cotizacion', on_delete=models.CASCADE, related_name='opciones')
     titulo = models.CharField(max_length=100)  # Ej: "Básico", "Full", "Premium"
@@ -78,3 +75,11 @@ class OpcionCotizacion(models.Model):
 
     def __str__(self):
         return f'{self.titulo} - {self.cotizacion}'
+
+class OpcionContrato(models.Model):
+    contrato = models.ForeignKey('Contrato', on_delete=models.CASCADE, related_name='opciones_elegidas')
+    cotizacion = models.ForeignKey('Cotizacion', on_delete=models.CASCADE)
+    opcion = models.ForeignKey('OpcionCotizacion', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.contrato.contrato_num} - {self.cotizacion.id} - {self.opcion.titulo}"
