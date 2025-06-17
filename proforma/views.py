@@ -30,6 +30,8 @@ from django.core.mail import EmailMessage
 from django.conf import settings
 from django.core.files.storage import default_storage
 import uuid
+from django.db import models
+from django.core.paginator import Paginator
 
 modelo_arbol = joblib.load(os.path.join(BASE_DIR, 'modelo_arbol.pkl'))
 
@@ -615,3 +617,46 @@ def generar_contrato(request, proforma_num):
         'proforma': proforma,
         'cotizaciones': cotizaciones
     })
+
+@login_required
+def estado_proformas(request):
+    # Verificar que el usuario sea trabajador
+    if not hasattr(request.user, 'profile') or request.user.profile.rol != 'trabajador':
+        return HttpResponseForbidden("Acceso denegado. Esta sección es solo para trabajadores.")
+    
+    # Obtener parámetros de filtrado
+    nombre_cliente = request.GET.get('nombre_cliente', '').strip()
+    numero_proforma = request.GET.get('numero_proforma', '').strip()
+    estado_filtro = request.GET.get('estado', '').strip()
+    
+    # Construir queryset base
+    proformas = Proforma.objects.select_related('cliente').order_by('-fecha')
+    
+    # Aplicar filtros
+    if nombre_cliente:
+        proformas = proformas.filter(
+            models.Q(cliente__first_name__icontains=nombre_cliente) |
+            models.Q(cliente__last_name__icontains=nombre_cliente) |
+            models.Q(cliente__username__icontains=nombre_cliente)
+        )
+    
+    if numero_proforma:
+        proformas = proformas.filter(proforma_num__icontains=numero_proforma)
+    
+    if estado_filtro and estado_filtro != 'todos':
+        proformas = proformas.filter(estado=estado_filtro)
+    
+    # Paginación
+    paginator = Paginator(proformas, 20)  # 20 proformas por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'proformas': page_obj,
+        'nombre_cliente': nombre_cliente,
+        'numero_proforma': numero_proforma,
+        'estado_filtro': estado_filtro,
+        'total_proformas': proformas.count(),
+    }
+    
+    return render(request, 'proforma/estado_proformas.html', context)

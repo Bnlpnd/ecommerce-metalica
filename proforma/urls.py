@@ -20,6 +20,6 @@ urlpatterns = [
     path('guardar-opciones/', views.guardar_opciones_cotizacion, name='guardar_opciones_cotizacion'),
     path('predecir-precio/', views.predecir_precio, name='predecir_precio'),
     path('proforma/pdf/<str:proforma_num>/', views.generar_pdf_proforma, name='generar_pdf_proforma'),
-    path('proforma/<str:proforma_num>/generar-contrato/', views.generar_contrato, name='generar_contrato')
-
+    path('proforma/<str:proforma_num>/generar-contrato/', views.generar_contrato, name='generar_contrato'),
+    path('estado-proformas/', views.estado_proformas, name='estado_proformas'),
 ]
