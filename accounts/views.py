@@ -1,14 +1,22 @@
 from cmath import log
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate , login as auth_login, logout
 from django.http import HttpResponseRedirect,HttpResponse
+from django.http import JsonResponse
 # Create your views here.
 from .models import Profile, Account
 from base.emails  import send_account_activation_email, send_password_reset_email
 from base.tokens import account_activation_token
+from datetime import date, timedelta
+from decimal import Decimal
+from django.core.paginator import Paginator
+from django.db import models as django_models
+from django.http import HttpResponseForbidden
+from .forms import ClienteProfileForm
+from proforma.models import Proforma, Contrato
 
 
 def login_view(request):
@@ -195,4 +203,256 @@ def forgot_password(request):
         return redirect('login')
 
     return render(request, 'accounts/forgot_password.html')
+
+@login_required
+def dashboard_cliente(request):
+    """Dashboard principal para clientes"""
+    # Verificar que el usuario sea cliente
+    if not hasattr(request.user, 'profile') or request.user.profile.rol != 'cliente':
+        return HttpResponseForbidden("Acceso denegado. Esta sección es solo para clientes.")
+    
+    # Estadísticas básicas para mostrar en el dashboard
+    total_proformas = Proforma.objects.filter(cliente=request.user).count()
+    total_contratos = Contrato.objects.filter(proforma__cliente=request.user).count()
+    proformas_pendientes = Proforma.objects.filter(cliente=request.user, estado='pendiente').count()
+    contratos_pendientes = Contrato.objects.filter(proforma__cliente=request.user, estado_pedido='pendiente').count()
+    
+    context = {
+        'total_proformas': total_proformas,
+        'total_contratos': total_contratos,
+        'proformas_pendientes': proformas_pendientes,
+        'contratos_pendientes': contratos_pendientes,
+    }
+    
+    return render(request, 'accounts/dashboard_cliente.html', context)
+
+@login_required
+def perfil_cliente(request):
+    """Vista para editar el perfil del cliente"""
+    if not hasattr(request.user, 'profile') or request.user.profile.rol != 'cliente':
+        return HttpResponseForbidden("Acceso denegado.")
+    
+    profile = request.user.profile
+    
+    if request.method == 'POST':
+        print("🔍 POST recibido - datos del formulario:")
+        for key, value in request.POST.items():
+            print(f"   {key}: {value}")
+            
+        form = ClienteProfileForm(request.POST, request.FILES, user=request.user, profile=profile)
+        
+        if form.is_valid():
+            print("✅ Formulario válido - guardando cambios...")
+            try:
+                # Usar el método save del formulario
+                form.save(request.user, profile)
+                messages.success(request, 'Perfil actualizado correctamente.')
+                return redirect('perfil_cliente')
+            except Exception as e:
+                print(f"❌ Error guardando: {e}")
+                messages.error(request, f'Error al guardar el perfil: {str(e)}')
+        else:
+            print("❌ Formulario inválido - errores:")
+            for field, errors in form.errors.items():
+                print(f"   {field}: {errors}")
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'errors': form.errors})
+    else:
+        form = ClienteProfileForm(user=request.user, profile=profile)
+    
+    context = {
+        'form': form,
+        'profile': profile
+    }
+    
+    return render(request, 'accounts/perfil_cliente.html', context)
+
+@login_required 
+def mis_proformas_cliente(request):
+    """Vista de proformas para clientes con filtros"""
+    if not hasattr(request.user, 'profile') or request.user.profile.rol != 'cliente':
+        return HttpResponseForbidden("Acceso denegado.")
+    
+    # Filtros
+    numero_proforma = request.GET.get('numero_proforma', '').strip()
+    estado_filtro = request.GET.get('estado', '').strip()
+    
+    # Query base filtrado por cliente
+    proformas = Proforma.objects.filter(cliente=request.user).order_by('-fecha')
+    
+    # Aplicar filtros
+    if numero_proforma:
+        proformas = proformas.filter(proforma_num__icontains=numero_proforma)
+    
+    if estado_filtro and estado_filtro != 'todos':
+        proformas = proformas.filter(estado=estado_filtro)
+    
+    # Paginación
+    paginator = Paginator(proformas, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'proformas': page_obj,
+        'numero_proforma': numero_proforma,
+        'estado_filtro': estado_filtro,
+        'total_proformas': proformas.count(),
+    }
+    
+    return render(request, 'accounts/mis_proformas_cliente.html', context)
+
+@login_required
+def mis_contratos_cliente(request):
+    """Vista de contratos para clientes con filtros"""
+    if not hasattr(request.user, 'profile') or request.user.profile.rol != 'cliente':
+        return HttpResponseForbidden("Acceso denegado.")
+    
+    # Filtros
+    numero_contrato = request.GET.get('numero_contrato', '').strip()
+    numero_proforma = request.GET.get('numero_proforma', '').strip()
+    estado_pedido = request.GET.get('estado_pedido', '').strip()
+    estado_deuda = request.GET.get('estado_deuda', '').strip()
+    
+    # Query base filtrado por cliente
+    contratos = Contrato.objects.filter(proforma__cliente=request.user).select_related('proforma').order_by('-fecha')
+    
+    # Aplicar filtros
+    if numero_contrato:
+        contratos = contratos.filter(contrato_num__icontains=numero_contrato)
+        
+    if numero_proforma:
+        contratos = contratos.filter(proforma__proforma_num__icontains=numero_proforma)
+    
+    if estado_pedido and estado_pedido != 'todos':
+        contratos = contratos.filter(estado_pedido=estado_pedido)
+        
+    if estado_deuda and estado_deuda != 'todos':
+        if estado_deuda == 'debe':
+            contratos = contratos.filter(acuenta__lt=django_models.F('preciototal'))
+        elif estado_deuda == 'pagado':
+            contratos = contratos.filter(acuenta__gte=django_models.F('preciototal'))
+    
+    # Paginación
+    paginator = Paginator(contratos, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'contratos': page_obj,
+        'numero_contrato': numero_contrato,
+        'numero_proforma': numero_proforma,
+        'estado_pedido': estado_pedido,
+        'estado_deuda': estado_deuda,
+        'total_contratos': contratos.count(),
+    }
+    
+    return render(request, 'accounts/mis_contratos_cliente.html', context)
+
+@login_required
+def ver_contrato_cliente(request, contrato_num):
+    """Vista de solo lectura del contrato para clientes"""
+    if not hasattr(request.user, 'profile') or request.user.profile.rol != 'cliente':
+        return HttpResponseForbidden("Acceso denegado.")
+    
+    # Verificar que el contrato pertenezca al cliente
+    contrato = get_object_or_404(Contrato, contrato_num=contrato_num, proforma__cliente=request.user)
+    
+    context = {
+        'contrato': contrato,
+        'es_cliente': True  # Flag para mostrar vista de solo lectura
+    }
+    
+    return render(request, 'accounts/ver_contrato_cliente.html', context)
+
+@login_required
+def generar_contrato_cliente(request, proforma_num):
+    """Generar contrato desde el dashboard del cliente"""
+    if not hasattr(request.user, 'profile') or request.user.profile.rol != 'cliente':
+        return HttpResponseForbidden("Acceso denegado.")
+    
+    # Verificar que la proforma pertenezca al cliente
+    proforma = get_object_or_404(Proforma, proforma_num=proforma_num, cliente=request.user)
+
+    # Verificar si la proforma tiene menos de 20 días
+    if (date.today() - proforma.fecha).days > 20:
+        messages.warning(request, "La proforma ha vencido y no se puede generar un contrato.")
+        return redirect('mis_proformas_cliente')
+
+    cotizaciones = proforma.cotizaciones.prefetch_related('opciones').all()
+
+    if request.method == 'POST':
+        from proforma.models import OpcionCotizacion, OpcionContrato
+        from proforma.utils.pdf_utils import render_to_pdf
+        from django.core.files.base import ContentFile
+        import uuid
+        
+        opcion_ids = request.POST.getlist('opcion_cotizacion')
+        detalle_extra = request.POST.get('detalle_extra', '')
+
+        if not opcion_ids:
+            messages.error(request, "Debe seleccionar al menos una opción.")
+            return redirect('generar_contrato_cliente', proforma_num=proforma_num)
+
+        # Calcular total
+        total = 0
+        for opcion_id in opcion_ids:
+            opcion = OpcionCotizacion.objects.get(id=opcion_id)
+            total += float(opcion.preciototal)
+
+        # Calcular 50% de abono
+        acuenta = total * 0.5
+        saldo = total - acuenta
+        
+        # Fecha de entrega: 7 días hábiles (aproximadamente 10 días calendario)
+        fecha_entrega = date.today() + timedelta(days=10)
+
+        contrato_num = f"C{str(uuid.uuid4())[:8].upper()}"
+        contrato = Contrato.objects.create(
+            contrato_num=contrato_num,
+            cantidad=len(opcion_ids),
+            preciototal=Decimal(str(total)),
+            acuenta=Decimal(str(acuenta)),
+            saldo=Decimal(str(saldo)),
+            fechaEntrega=fecha_entrega,
+            detale_extra=detalle_extra,
+            proforma=proforma
+        )
+
+        # Relacionar opciones seleccionadas
+        for opcion_id in opcion_ids:
+            opcion = OpcionCotizacion.objects.get(id=opcion_id)
+            OpcionContrato.objects.create(
+                contrato=contrato,
+                cotizacion=opcion.cotizacion,
+                opcion=opcion
+            )
+
+        # Generar PDF del contrato
+        context = {'contrato': contrato, 'opciones': contrato.opciones_elegidas.all()}
+        pdf_file = render_to_pdf('proforma/pdf_contrato.html', context)
+        if pdf_file:
+            contrato.pdf.save(f"{contrato.contrato_num}.pdf", ContentFile(pdf_file.read()))
+            messages.success(request, f"Contrato {contrato_num} generado correctamente. Monto a abonar: S/. {acuenta:.2f}")
+        else:
+            messages.warning(request, "Contrato creado pero no se pudo generar el PDF.")
+
+        return redirect('mis_contratos_cliente')
+
+    # Calcular total para mostrar resumen
+    total_estimado = 0
+    for cotizacion in cotizaciones:
+        if cotizacion.opciones.exists():
+            # Tomar la primera opción como referencia para el cálculo
+            total_estimado += float(cotizacion.opciones.first().preciototal or 0)
+
+    context = {
+        'proforma': proforma,
+        'cotizaciones': cotizaciones,
+        'total_estimado': total_estimado,
+        'abono_requerido': total_estimado * 0.5,
+        'fecha_entrega_estimada': date.today() + timedelta(days=10)
+    }
+
+    return render(request, 'accounts/generar_contrato_cliente.html', context)
 

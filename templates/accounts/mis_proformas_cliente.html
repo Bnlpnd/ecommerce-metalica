@@ -1,0 +1,218 @@
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4><i class="fas fa-file-invoice text-info"></i> Mis Proformas</h4>
+            <span class="badge bg-info">{{ total_proformas }} proforma{{ total_proformas|pluralize }}</span>
+        </div>
+
+        <!-- Panel de Filtros -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-filter"></i> Filtros de Búsqueda</h6>
+            </div>
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">N° Proforma</label>
+                        <input type="text" 
+                               class="form-control" 
+                               name="numero_proforma" 
+                               value="{{ numero_proforma }}"
+                               placeholder="Ej: P0001">
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Estado</label>
+                        <select class="form-select" name="estado">
+                            <option value="todos" {% if estado_filtro == 'todos' or not estado_filtro %}selected{% endif %}>
+                                Todos
+                            </option>
+                            <option value="pendiente" {% if estado_filtro == 'pendiente' %}selected{% endif %}>
+                                Pendiente
+                            </option>
+                            <option value="atendido" {% if estado_filtro == 'atendido' %}selected{% endif %}>
+                                Atendido
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search"></i> Buscar
+                        </button>
+                        <a href="{% url 'mis_proformas_cliente' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-sync-alt"></i>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tabla de Proformas -->
+        {% if proformas %}
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th><i class="fas fa-hashtag"></i> N° Proforma</th>
+                                    <th><i class="fas fa-calendar"></i> Fecha Solicitud</th>
+                                    <th><i class="fas fa-calendar-check"></i> Fecha Atendido</th>
+                                    <th><i class="fas fa-dollar-sign"></i> Precio Total</th>
+                                    <th><i class="fas fa-info-circle"></i> Estado</th>
+                                    <th><i class="fas fa-cogs"></i> Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for proforma in proformas %}
+                                <tr>
+                                    <td>
+                                        <strong class="text-primary">{{ proforma.proforma_num }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            {{ proforma.fecha|date:"d/m/Y" }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if proforma.estado == 'atendido' %}
+                                            <span class="badge bg-info">
+                                                {{ proforma.updated_at|date:"d/m/Y" }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong class="text-success">S/. {{ proforma.preciototal|floatformat:2 }}</strong>
+                                    </td>
+                                    <td>
+                                        {% if proforma.estado == 'pendiente' %}
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="fas fa-clock"></i> Pendiente
+                                            </span>
+                                        {% elif proforma.estado == 'atendido' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle"></i> Atendido
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ proforma.estado|title }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <!-- Ver PDF -->
+                                            {% if proforma.pdf %}
+                                                <a href="{{ proforma.pdf.url }}" 
+                                                   target="_blank"
+                                                   class="btn btn-outline-success btn-sm" 
+                                                   title="Ver PDF">
+                                                    <i class="fas fa-file-pdf"></i>
+                                                </a>
+                                            {% else %}
+                                                <button class="btn btn-outline-secondary btn-sm" 
+                                                        disabled 
+                                                        title="PDF no disponible">
+                                                    <i class="fas fa-file-pdf"></i>
+                                                </button>
+                                            {% endif %}
+
+                                            <!-- Generar Contrato -->
+                                            {% if proforma.estado == 'atendido' %}
+                                                {% with limite=proforma.fecha|add:"20"|date:"U" hoy=now|date:"U" %}
+                                                    {% if hoy <= limite %}
+                                                        <a href="{% url 'generar_contrato_cliente' proforma.proforma_num %}" 
+                                                           class="btn btn-outline-primary btn-sm" 
+                                                           title="Generar contrato">
+                                                            <i class="fas fa-file-contract"></i>
+                                                        </a>
+                                                    {% else %}
+                                                        <button class="btn btn-outline-secondary btn-sm" 
+                                                                disabled 
+                                                                title="Proforma vencida (más de 20 días)">
+                                                            <i class="fas fa-file-contract"></i>
+                                                        </button>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            {% else %}
+                                                <button class="btn btn-outline-secondary btn-sm" 
+                                                        disabled 
+                                                        title="Esperando atención">
+                                                    <i class="fas fa-file-contract"></i>
+                                                </button>
+                                            {% endif %}
+
+                                            <!-- Ver Detalles -->
+                                            <a href="{% url 'ver_proforma' proforma.proforma_num %}" 
+                                               class="btn btn-outline-info btn-sm" 
+                                               title="Ver detalles"
+                                               target="_blank">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paginación -->
+            {% if proformas.has_other_pages %}
+                <nav aria-label="Paginación" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if proformas.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ proformas.previous_page_number }}{% if numero_proforma %}&numero_proforma={{ numero_proforma }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in proformas.paginator.page_range %}
+                            {% if proformas.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > proformas.number|add:'-3' and num < proformas.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if numero_proforma %}&numero_proforma={{ numero_proforma }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if proformas.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ proformas.next_page_number }}{% if numero_proforma %}&numero_proforma={{ numero_proforma }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+
+        {% else %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">No se encontraron proformas</h5>
+                    {% if numero_proforma or estado_filtro %}
+                        <p class="text-muted">No hay proformas que coincidan con los filtros aplicados.</p>
+                        <a href="{% url 'mis_proformas_cliente' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-sync-alt"></i> Limpiar filtros
+                        </a>
+                    {% else %}
+                        <p class="text-muted">Aún no has solicitado ninguna proforma.</p>
+                        <a href="{% url 'formulario_proforma' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Solicitar Proforma
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div> 

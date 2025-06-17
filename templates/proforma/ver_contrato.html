@@ -228,18 +228,18 @@
             <div class="card">
                 <div class="card-header form-card">
                     <i class="fas fa-tools"></i> Panel de Control
-                </div>
-                <div class="card-body">
-                    <form method="POST">
-                        {% csrf_token %}
-                        <div class="mb-3">
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
                             <label for="fechaEntrega" class="form-label fw-bold">
                                 <i class="fas fa-calendar-alt text-primary"></i> Fecha de Entrega
                             </label>
                             <input type="date" name="fechaEntrega" class="form-control" 
                                    value="{{ contrato.fechaEntrega|date:'Y-m-d' }}">
-                        </div>
-                        <div class="mb-3">
+                </div>
+                <div class="mb-3">
                             <label for="acuenta" class="form-label fw-bold">
                                 <i class="fas fa-money-bill text-success"></i> Nuevo Abono
                             </label>
@@ -248,30 +248,30 @@
                                 <input type="number" step="0.01" name="acuenta" class="form-control" 
                                        placeholder="0.00">
                             </div>
-                        </div>
-                        <div class="mb-3">
+                </div>
+                <div class="mb-3">
                             <label for="estado_pedido" class="form-label fw-bold">
                                 <i class="fas fa-list-check text-info"></i> Estado del Pedido
                             </label>
-                            <select name="estado_pedido" class="form-select">
-                                {% for value, label in opciones_estado %}
+                    <select name="estado_pedido" class="form-select">
+                        {% for value, label in opciones_estado %}
                                     <option value="{{ value }}" {% if contrato.estado_pedido == value %}selected{% endif %}>
                                         {{ label }}
                                     </option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                        {% endfor %}
+                    </select>
+                </div>
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-gradient">
-                                <i class="fas fa-save"></i> Guardar Cambios
-                            </button>
+                    <i class="fas fa-save"></i> Guardar Cambios
+                </button>
                             <a href="{% url 'estado_contratos' %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left"></i> Volver
-                            </a>
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
                         </div>
-                    </form>
-                </div>
-            </div>
+            </form>
+        </div>
+    </div>
         </div>
     </div>
 
@@ -280,8 +280,8 @@
         <div class="col-12">
             <div class="section-header">
                 <h4><i class="fas fa-door-closed"></i> Producto y Cotización</h4>
-            </div>
-            
+    </div>
+
             {% for cotizacion in contrato.proforma.cotizaciones.all %}
             <div class="card mb-4">
                 <div class="card-header bg-white">
@@ -297,7 +297,7 @@
                             <span class="badge bg-info badge-status">
                                 <i class="fas fa-tag"></i> Cantidad: {{ cotizacion.cantidad }}
                             </span>
-                        </div>
+        </div>
                     </div>
                 </div>
                 <div class="card-body">

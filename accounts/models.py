@@ -31,20 +31,19 @@ class Profile(BaseModel):
 
 @receiver(post_save, sender=User)
 def crear_perfil_usuario(sender, instance, created, **kwargs):
+    """Crear perfil y enviar email de activación cuando se crea un usuario"""
     if created:
-        Profile.objects.create(user=instance, rol='cliente')
-
-@receiver(post_save , sender = User)
-def  send_email_token(sender , instance , created , **kwargs):
-    try:
-        if created:
+        try:
             email_token = str(uuid.uuid4())
-            Profile.objects.create(user = instance , email_token = email_token)
+            Profile.objects.create(
+                user=instance, 
+                rol='cliente',
+                email_token=email_token
+            )
             email = instance.email
-            send_account_activation_email(email , email_token)
-
-    except Exception as e:
-        print(e)
+            send_account_activation_email(email, email_token)
+        except Exception as e:
+            print(f"Error creando perfil: {e}")
 
 class MyAccountManager(BaseUserManager):
     def create_user(self, first_name, last_name, username, email, password=None):

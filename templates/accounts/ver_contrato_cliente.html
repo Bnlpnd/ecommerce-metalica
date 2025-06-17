@@ -1,0 +1,265 @@
+{% load static %}
+
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4><i class="fas fa-file-contract text-primary"></i> Contrato {{ contrato.contrato_num }}</h4>
+            <div>
+                <span class="badge bg-info me-2">Solo Lectura</span>
+                {% if contrato.pdf %}
+                    <a href="{{ contrato.pdf.url }}" target="_blank" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-file-pdf"></i> Ver PDF
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- SECCIÓN 1: DATOS DEL CLIENTE -->
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0"><i class="fas fa-user-circle"></i> Datos del Cliente</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-item mb-3">
+                            <strong><i class="fas fa-user text-primary"></i> Nombre:</strong><br>
+                            {{ contrato.cliente.get_full_name|default:contrato.cliente.username }}
+                        </div>
+                        <div class="info-item mb-3">
+                            <strong><i class="fas fa-map-marker-alt text-danger"></i> Dirección:</strong><br>
+                            {{ contrato.cliente.profile.direccion|default:"No especificada" }}
+                        </div>
+                        <div class="info-item mb-3">
+                            <strong><i class="fas fa-city text-info"></i> Distrito:</strong><br>
+                            {{ contrato.cliente.profile.distrito|default:"No especificado" }}
+                        </div>
+                        <div class="info-item mb-3">
+                            <strong><i class="fas fa-id-card text-warning"></i> DNI:</strong><br>
+                            {{ contrato.cliente.profile.dni|default:"No especificado" }}
+                        </div>
+                        <div class="info-item">
+                            <strong><i class="fas fa-envelope text-success"></i> Email:</strong><br>
+                            {{ contrato.cliente.email }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: DETALLES DEL PEDIDO -->
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="fas fa-clipboard-list"></i> Detalles del Pedido</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-item mb-3">
+                            <strong><i class="fas fa-hashtag text-primary"></i> N° Proforma:</strong><br>
+                            {{ contrato.proforma.proforma_num }}
+                        </div>
+                        <div class="info-item mb-3">
+                            <strong><i class="fas fa-calendar text-primary"></i> Fecha Emisión:</strong><br>
+                            {{ contrato.fecha|date:"d/m/Y" }}
+                        </div>
+                        <div class="info-item mb-3">
+                            <strong><i class="fas fa-calendar-check text-success"></i> F. Entrega:</strong><br>
+                            {{ contrato.fechaEntrega|date:"d/m/Y" }}
+                        </div>
+                        <div class="info-item mb-3">
+                            <strong><i class="fas fa-tasks text-info"></i> Estado:</strong><br>
+                            {% if contrato.estado_pedido == 'pendiente' %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-clock"></i> Pendiente
+                                </span>
+                            {% elif contrato.estado_pedido == 'en_produccion' %}
+                                <span class="badge bg-info">
+                                    <i class="fas fa-cogs"></i> En Producción
+                                </span>
+                            {% else %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle"></i> Entregado
+                                </span>
+                            {% endif %}
+                        </div>
+                        {% if contrato.detale_extra %}
+                            <div class="info-item">
+                                <strong><i class="fas fa-comment text-secondary"></i> Detalles:</strong><br>
+                                <small class="text-muted">{{ contrato.detale_extra }}</small>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 3: INFORMACIÓN FINANCIERA -->
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="fas fa-dollar-sign"></i> Información Financiera</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-item mb-3">
+                            <strong><i class="fas fa-dollar-sign text-success"></i> Precio Total:</strong><br>
+                            <span class="text-success fw-bold fs-5">S/. {{ contrato.preciototal|floatformat:2 }}</span>
+                        </div>
+                        <div class="info-item mb-3">
+                            <strong><i class="fas fa-hand-holding-usd text-primary"></i> A Cuenta:</strong><br>
+                            <span class="text-primary fw-bold fs-5">S/. {{ contrato.acuenta|floatformat:2 }}</span>
+                        </div>
+                        <div class="info-item mb-3">
+                            <strong><i class="fas fa-balance-scale text-danger"></i> Saldo Restante:</strong><br>
+                            {% if contrato.saldo == 0 %}
+                                <span class="text-success fw-bold fs-5">S/. 0.00</span>
+                            {% else %}
+                                <span class="text-danger fw-bold fs-5">S/. {{ contrato.saldo|floatformat:2 }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="info-item">
+                            <strong><i class="fas fa-money-bill-wave text-warning"></i> Estado de Deuda:</strong><br>
+                            {% if contrato.estado_deuda == 'pagado' %}
+                                <span class="badge bg-success fs-6">
+                                    <i class="fas fa-check-circle"></i> Pagado
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark fs-6">
+                                    <i class="fas fa-exclamation-triangle"></i> Pendiente de Pago
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 4: PRODUCTOS Y COTIZACIONES -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="fas fa-door-closed"></i> Productos del Contrato</h6>
+                    </div>
+                    <div class="card-body">
+                        {% for cotizacion in contrato.proforma.cotizaciones.all %}
+                        <div class="card mb-3 border-light">
+                            <div class="card-header bg-light">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <h6 class="mb-0 text-primary">
+                                            <i class="fas fa-cube"></i> 
+                                            {{ cotizacion.producto.product.product_name }}
+                                        </h6>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-tag"></i> Cantidad: {{ cotizacion.cantidad }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- Imagen del Producto -->
+                                    <div class="col-md-3 text-center mb-3">
+                                        {% with imagen=cotizacion.producto.product_images.first %}
+                                            {% if imagen %}
+                                                <img src="{{ imagen.image.url }}" 
+                                                     alt="{{ cotizacion.producto.product.product_name }}"
+                                                     class="img-fluid rounded"
+                                                     style="max-height: 150px;">
+                                            {% else %}
+                                                <div class="d-flex align-items-center justify-content-center bg-light rounded" 
+                                                     style="height: 150px;">
+                                                    <i class="fas fa-image fa-3x text-muted"></i>
+                                                </div>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    
+                                    <!-- Detalles del Producto -->
+                                    <div class="col-md-9">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p><strong><i class="fas fa-ruler text-primary"></i> Medidas:</strong> 
+                                                   {{ cotizacion.alto }} × {{ cotizacion.ancho }} cm</p>
+                                                <p><strong><i class="fas fa-palette text-warning"></i> Color:</strong> 
+                                                   {{ cotizacion.color }}</p>
+                                                <p><strong><i class="fas fa-key text-info"></i> Chapa:</strong> 
+                                                   {{ cotizacion.chapa }}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="bg-light p-2 rounded">
+                                                    <small><strong>Especificaciones:</strong></small>
+                                                    <div class="mt-1">
+                                                        <small><strong>1.</strong> {{ cotizacion.pregunta_1|truncatechars:50 }}</small>
+                                                    </div>
+                                                    <div>
+                                                        <small><strong>2.</strong> {{ cotizacion.pregunta_2|truncatechars:50 }}</small>
+                                                    </div>
+                                                    <div>
+                                                        <small><strong>3.</strong> {{ cotizacion.pregunta_3|truncatechars:50 }}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        <!-- Tabla de Opciones Seleccionadas -->
+                        {% if contrato.opciones_elegidas.all %}
+                        <div class="mt-4">
+                            <h6><i class="fas fa-check-circle text-success"></i> Opciones Contratadas</h6>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Opción</th>
+                                            <th>Descripción</th>
+                                            <th>Material</th>
+                                            <th>P. Instalación</th>
+                                            <th>P. Real</th>
+                                            <th>P. Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for opcion_contrato in contrato.opciones_elegidas.all %}
+                                        <tr>
+                                            <td><strong>{{ opcion_contrato.opcion.titulo }}</strong></td>
+                                            <td><small>{{ opcion_contrato.opcion.descripcion_adicional|default:"Sin descripción"|truncatechars:50 }}</small></td>
+                                            <td><span class="badge bg-secondary">{{ opcion_contrato.cotizacion.producto.material.material_name }}</span></td>
+                                            <td>S/. {{ opcion_contrato.opcion.precio_instalacion|floatformat:2 }}</td>
+                                            <td>S/. {{ opcion_contrato.opcion.precio_real|floatformat:2 }}</td>
+                                            <td><strong class="text-success">S/. {{ opcion_contrato.opcion.preciototal|floatformat:2 }}</strong></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botón de regreso -->
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <button onclick="history.back()" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.info-item {
+    background: white;
+    border-left: 3px solid #007bff;
+    padding: 8px 12px;
+    border-radius: 0 5px 5px 0;
+}
+</style> 
