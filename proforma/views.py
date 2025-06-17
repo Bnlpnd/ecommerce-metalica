@@ -10,7 +10,7 @@ BASE_DIR = settings.BASE_DIR
 import joblib
 import os
 from django.utils import timezone
-
+from decimal import Decimal
 from django.utils.timezone import now
 from datetime import timedelta
 from reportlab.pdfgen import canvas
@@ -32,6 +32,8 @@ from django.core.files.storage import default_storage
 import uuid
 from django.db import models
 from django.core.paginator import Paginator
+from decimal import Decimal
+from datetime import datetime
 
 modelo_arbol = joblib.load(os.path.join(BASE_DIR, 'modelo_arbol.pkl'))
 
@@ -660,3 +662,168 @@ def estado_proformas(request):
     }
     
     return render(request, 'proforma/estado_proformas.html', context)
+
+@login_required
+def estado_contratos(request):
+    # Verificar que el usuario sea trabajador
+    if not hasattr(request.user, 'profile') or request.user.profile.rol != 'trabajador':
+        return HttpResponseForbidden("Acceso denegado. Esta sección es solo para trabajadores.")
+    
+    # Obtener parámetros de filtrado
+    nombre_cliente = request.GET.get('nombre_cliente', '').strip()
+    numero_contrato = request.GET.get('numero_contrato', '').strip()
+    numero_proforma = request.GET.get('numero_proforma', '').strip()
+    estado_pedido = request.GET.get('estado_pedido', '').strip()
+    estado_deuda = request.GET.get('estado_deuda', '').strip()
+    
+    # Construir queryset base
+    contratos = Contrato.objects.select_related('proforma__cliente').order_by('-fecha')
+    
+    # Aplicar filtros
+    if nombre_cliente:
+        contratos = contratos.filter(
+            models.Q(proforma__cliente__first_name__icontains=nombre_cliente) |
+            models.Q(proforma__cliente__last_name__icontains=nombre_cliente) |
+            models.Q(proforma__cliente__username__icontains=nombre_cliente)
+        )
+    
+    if numero_contrato:
+        contratos = contratos.filter(contrato_num__icontains=numero_contrato)
+        
+    if numero_proforma:
+        contratos = contratos.filter(proforma__proforma_num__icontains=numero_proforma)
+    
+    if estado_pedido and estado_pedido != 'todos':
+        contratos = contratos.filter(estado_pedido=estado_pedido)
+        
+    if estado_deuda and estado_deuda != 'todos':
+        if estado_deuda == 'debe':
+            contratos = contratos.filter(acuenta__lt=models.F('preciototal'))
+        elif estado_deuda == 'pagado':
+            contratos = contratos.filter(acuenta__gte=models.F('preciototal'))
+    
+    # Paginación
+    paginator = Paginator(contratos, 20)  # 20 contratos por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'contratos': page_obj,
+        'nombre_cliente': nombre_cliente,
+        'numero_contrato': numero_contrato,
+        'numero_proforma': numero_proforma,
+        'estado_pedido': estado_pedido,
+        'estado_deuda': estado_deuda,
+        'total_contratos': contratos.count(),
+    }
+    
+    return render(request, 'proforma/estado_contratos.html', context)
+
+@login_required
+def ver_contrato(request, contrato_num):
+    if not hasattr(request.user, 'profile') or request.user.profile.rol != 'trabajador':
+        return HttpResponseForbidden("Acceso denegado. Esta sección es solo para trabajadores.")
+
+    contrato = get_object_or_404(Contrato, contrato_num=contrato_num)
+    
+    # Guardar estado original
+    estado_pedido_original = contrato.estado_pedido
+    saldo_original = contrato.saldo  # importante
+
+    if request.method == 'POST':
+        try:
+            nueva_fecha_entrega = request.POST.get('fechaEntrega')
+            nuevo_abono = request.POST.get('acuenta')
+            nuevo_estado_pedido = request.POST.get('estado_pedido')
+
+            if nueva_fecha_entrega:
+                contrato.fechaEntrega = datetime.strptime(nueva_fecha_entrega, '%Y-%m-%d').date()
+            
+            if nuevo_abono:
+                abono_decimal = Decimal(nuevo_abono)
+                contrato.acuenta += abono_decimal
+
+            # Recalcular saldo
+            contrato.saldo = contrato.preciototal - contrato.acuenta
+            
+            # Actualizar estado pedido
+            if nuevo_estado_pedido:
+                contrato.estado_pedido = nuevo_estado_pedido
+
+            contrato.save()
+
+            # Detectar si cambió el estado de deuda (debe vs pagado)
+            estado_deuda_actual = contrato.estado_deuda
+            estado_deuda_anterior = 'pagado' if saldo_original <= 0 else 'debe'
+
+            if (estado_pedido_original != contrato.estado_pedido or
+                estado_deuda_actual != estado_deuda_anterior):
+                enviar_notificacion_contrato(contrato, True, True)
+
+            messages.success(request, "Contrato actualizado correctamente.")
+            return redirect('ver_contrato', contrato_num=contrato_num)
+
+        except Exception as e:
+            messages.error(request, f"Error al actualizar el contrato: {str(e)}")
+
+    context = {
+        'contrato': contrato,
+        'opciones_estado': [
+            ('pendiente', 'Pendiente'),
+            ('en_produccion', 'En Producción'),
+            ('entregado', 'Entregado')
+        ]
+    }
+    return render(request, 'proforma/ver_contrato.html', context)
+
+def enviar_notificacion_contrato(contrato, cambio_estado_pedido, cambio_estado_deuda):
+    """Envía notificación por correo cuando cambia el estado del contrato"""
+    try:
+        from django.core.mail import EmailMessage
+        
+        cliente = contrato.cliente
+        if not cliente or not cliente.email:
+            print(f"⚠️ Cliente {cliente} no tiene correo registrado")
+            return
+        
+        # Construir mensaje
+        cambios = []
+        if cambio_estado_pedido:
+            cambios.append(f"Estado del pedido: {contrato.get_estado_pedido_display()}")
+        if cambio_estado_deuda:
+            cambios.append(f"Estado de deuda: {contrato.estado_deuda.title()}")
+        
+        subject = f"Actualización de contrato {contrato.contrato_num}"
+        message = (
+            f"Estimado/a {cliente.get_full_name()},\n\n"
+            f"Le informamos que su contrato número {contrato.contrato_num} ha sido actualizado:\n\n"
+            f"📋 Cambios realizados:\n"
+        )
+        
+        for cambio in cambios:
+            message += f"• {cambio}\n"
+        
+        message += (
+            f"\n📊 Estado actual:\n"
+            f"• Fecha de entrega: {contrato.fechaEntrega.strftime('%d/%m/%Y')}\n"
+            f"• Monto total: S/.{contrato.preciototal}\n"
+            f"• A cuenta: S/.{contrato.acuenta}\n"
+            f"• Saldo pendiente: S/.{contrato.saldo}\n"
+            f"• Estado del pedido: {contrato.get_estado_pedido_display()}\n"
+            f"• Estado de deuda: {contrato.estado_deuda.title()}\n\n"
+            f"Gracias por confiar en nosotros.\n"
+        )
+        
+        email = EmailMessage(
+            subject=subject,
+            body=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[cliente.email],
+            bcc=["zoila.benel@gmail.com"]
+        )
+        
+        email.send()
+        print(f"📧 Notificación enviada a {cliente.email} por cambios en contrato {contrato.contrato_num}")
+        
+    except Exception as e:
+        print(f"❌ Error enviando notificación de contrato: {e}")

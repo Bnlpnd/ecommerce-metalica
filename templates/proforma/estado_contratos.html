@@ -1,0 +1,338 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estado de Contratos</title>
+    <!-- Bootstrap CSS -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="{% static 'fonts/fontawesome/css/all.min.css' %}">
+    <!-- CSS personalizado -->
+    <style>
+        .card {
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+        
+        .btn-action {
+            margin: 0 2px;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-action:hover {
+            transform: scale(1.1);
+        }
+        
+        .badge {
+            font-size: 0.8em;
+        }
+        
+        .search-filters {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .search-filters .form-control,
+        .search-filters .form-select {
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .search-filters .form-control:focus,
+        .search-filters .form-select:focus {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transform: translateY(-1px);
+        }
+        
+        .header-title {
+            color: #2c3e50;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stats-badge {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 2px 10px rgba(40, 167, 69, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="header-title">
+                    <i class="fas fa-file-contract text-primary"></i> 
+                    Lista de Contratos
+                </h1>
+                <div class="stats-badge">
+                    <i class="fas fa-chart-bar"></i> 
+                    Total: {{ total_contratos }} contrato{{ total_contratos|pluralize }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Filtros -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="search-filters">
+                <form method="GET" class="row g-3 align-items-end">
+                    <div class="col-md-2">
+                        <label class="form-label text-white fw-bold">
+                            <i class="fas fa-user"></i> Cliente
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               name="nombre_cliente" 
+                               value="{{ nombre_cliente }}"
+                               placeholder="Buscar por nombre...">
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label class="form-label text-white fw-bold">
+                            <i class="fas fa-file-contract"></i> N° Contrato
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               name="numero_contrato" 
+                               value="{{ numero_contrato }}"
+                               placeholder="Ej: C0001">
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label class="form-label text-white fw-bold">
+                            <i class="fas fa-file-invoice"></i> N° Proforma
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               name="numero_proforma" 
+                               value="{{ numero_proforma }}"
+                               placeholder="Ej: P0001">
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label class="form-label text-white fw-bold">
+                            <i class="fas fa-tasks"></i> Estado Pedido
+                        </label>
+                        <select class="form-select" name="estado_pedido">
+                            <option value="todos" {% if estado_pedido == 'todos' or not estado_pedido %}selected{% endif %}>
+                                Todos
+                            </option>
+                            <option value="pendiente" {% if estado_pedido == 'pendiente' %}selected{% endif %}>
+                                Pendiente
+                            </option>
+                            <option value="en_produccion" {% if estado_pedido == 'en_produccion' %}selected{% endif %}>
+                                En Producción
+                            </option>
+                            <option value="entregado" {% if estado_pedido == 'entregado' %}selected{% endif %}>
+                                Entregado
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label class="form-label text-white fw-bold">
+                            <i class="fas fa-money-bill-wave"></i> Estado Deuda
+                        </label>
+                        <select class="form-select" name="estado_deuda">
+                            <option value="todos" {% if estado_deuda == 'todos' or not estado_deuda %}selected{% endif %}>
+                                Todos
+                            </option>
+                            <option value="debe" {% if estado_deuda == 'debe' %}selected{% endif %}>
+                                Debe
+                            </option>
+                            <option value="pagado" {% if estado_deuda == 'pagado' %}selected{% endif %}>
+                                Pagado
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg flex-fill">
+                                <i class="fas fa-search"></i> Buscar
+                            </button>
+                            <a href="{% url 'estado_contratos' %}" class="btn btn-outline-light btn-lg">
+                                <i class="fas fa-sync-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Contratos -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-table"></i> 
+                        Resultados de Contratos
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if contratos %}
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th><i class="fas fa-file-contract"></i> N° Contrato</th>
+                                        <th><i class="fas fa-file-invoice"></i> N° Proforma</th>
+                                        <th><i class="fas fa-user"></i> Cliente</th>
+                                        <th><i class="fas fa-calendar"></i> F. Emisión</th>
+                                        <th><i class="fas fa-calendar-check"></i> F. Entrega</th>
+                                        <th><i class="fas fa-dollar-sign"></i> Total</th>
+                                        <th><i class="fas fa-hand-holding-usd"></i> A Cuenta</th>
+                                        <th><i class="fas fa-balance-scale"></i> Saldo</th>
+                                        <th><i class="fas fa-tasks"></i> Estado Pedido</th>
+                                        <th><i class="fas fa-money-bill-wave"></i> Estado Deuda</th>
+                                        <th><i class="fas fa-cogs"></i> Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for contrato in contratos %}
+                                    <tr>
+                                        <td>
+                                            <strong class="text-primary">{{ contrato.contrato_num }}</strong>
+                                        </td>
+                                        <td>
+                                            {% if contrato.proforma %}
+                                                <span class="badge bg-info">{{ contrato.proforma.proforma_num }}</span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if contrato.cliente %}
+                                                <strong>{{ contrato.cliente.get_full_name|default:contrato.cliente.username }}</strong>
+                                            {% else %}
+                                                <span class="text-muted">Sin cliente</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">
+                                                {{ contrato.fecha|date:"d/m/Y" }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">
+                                                {{ contrato.fechaEntrega|date:"d/m/Y" }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <strong class="text-success fs-6">S/. {{ contrato.preciototal|floatformat:2 }}</strong>
+                                        </td>
+                                        <td>
+                                            <strong class="text-primary">S/. {{ contrato.acuenta|floatformat:2 }}</strong>
+                                        </td>
+                                        <td>
+                                            {% if contrato.saldo == 0 %}
+                                                <strong class="text-success">S/. 0.00</strong>
+                                            {% else %}
+                                                <strong class="text-danger">S/. {{ contrato.saldo|floatformat:2 }}</strong>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if contrato.estado_pedido == 'pendiente' %}
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="fas fa-clock"></i> Pendiente
+                                                </span>
+                                            {% elif contrato.estado_pedido == 'en_produccion' %}
+                                                <span class="badge bg-secondary">
+                                                    <i class="fas fa-cogs"></i> En Producción
+                                                </span>
+                                            {% elif contrato.estado_pedido == 'entregado' %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check-circle"></i> Entregado
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">
+                                                    <i class="fas fa-question"></i> {{ contrato.estado_pedido|title }}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if contrato.estado_deuda == 'pagado' %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check-circle"></i> Pagado
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="fas fa-exclamation-triangle"></i> Debe
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <!-- Ver contrato completo -->
+                                                <a href="{% url 'ver_contrato' contrato.contrato_num %}" 
+                                                   class="btn btn-outline-primary btn-sm btn-action" 
+                                                   title="Ver contrato completo">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                
+                                                <!-- Ver PDF (solo si existe) -->
+                                                {% if contrato.pdf %}
+                                                    <a href="{{ contrato.pdf.url }}" 
+                                                       target="_blank"
+                                                       class="btn btn-outline-success btn-sm btn-action" 
+                                                       title="Ver PDF del contrato">
+                                                        <i class="fas fa-file-pdf"></i>
+                                                    </a>
+                                                {% else %}
+                                                    <button class="btn btn-outline-secondary btn-sm btn-action" 
+                                                            disabled 
+                                                            title="PDF no generado">
+                                                        <i class="fas fa-file-pdf"></i>
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="mb-3">
+                                <i class="fas fa-inbox fa-4x text-muted"></i>
+                            </div>
+                            <h5 class="text-muted">No se encontraron contratos</h5>
+                            <p class="text-muted">No hay contratos registrados en el sistema</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
+</body>
+</html>

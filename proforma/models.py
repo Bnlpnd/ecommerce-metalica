@@ -51,9 +51,22 @@ class Contrato(BaseModel):
     saldo = models.DecimalField(max_digits=10, decimal_places=2)
     fecha = models.DateField(auto_now_add=True)
     fechaEntrega = models.DateField()
+    estado_pedido = models.CharField(max_length=20, default='pendiente', choices=[
+        ('pendiente', 'Pendiente'),
+        ('en_produccion', 'En Producción'),
+        ('entregado', 'Entregado')
+    ])
     detale_extra = models.TextField(max_length=250, default=" ") #se agrega algun detalle extra
-    proforma = models.ForeignKey(Proforma ,  on_delete=models.CASCADE,related_name="proformas", blank=True, null=True)
+    proforma = models.ForeignKey(Proforma ,  on_delete=models.CASCADE,related_name="contratos", blank=True, null=True)
     pdf = models.FileField(upload_to='contratos_pdfs/', blank=True, null=True)
+
+    @property
+    def cliente(self):
+        return self.proforma.cliente if self.proforma else None
+    
+    @property
+    def estado_deuda(self):
+        return 'pagado' if self.acuenta >= self.preciototal else 'debe'
 
     def save(self, *args, **kwargs):
         if not self.slug:

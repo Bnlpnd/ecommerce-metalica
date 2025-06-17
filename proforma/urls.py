@@ -22,4 +22,6 @@ urlpatterns = [
     path('proforma/pdf/<str:proforma_num>/', views.generar_pdf_proforma, name='generar_pdf_proforma'),
     path('proforma/<str:proforma_num>/generar-contrato/', views.generar_contrato, name='generar_contrato'),
     path('estado-proformas/', views.estado_proformas, name='estado_proformas'),
+    path('estado-contratos/', views.estado_contratos, name='estado_contratos'),
+    path('contrato/<str:contrato_num>/', views.ver_contrato, name='ver_contrato'),
 ]

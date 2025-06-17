@@ -1,0 +1,104 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contrato {{ contrato.contrato_num }}</title>
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'fonts/fontawesome/css/all.min.css' %}">
+</head>
+<body class="bg-light">
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="text-primary">
+                <i class="fas fa-file-contract"></i> Contrato {{ contrato.contrato_num }}
+            </h2>
+        </div>
+    </div>
+
+    {% if messages %}
+      <div class="row mb-3">
+        <div class="col-12">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <i class="fas fa-edit"></i> Editar Detalles del Contrato
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="fechaEntrega" class="form-label">Fecha de Entrega</label>
+                    <input type="date" name="fechaEntrega" class="form-control" value="{{ contrato.fechaEntrega|date:'Y-m-d' }}">
+                </div>
+
+                <div class="mb-3">
+                    <label for="acuenta" class="form-label">Monto A Cuenta</label>
+                    <input type="number" step="0.01" name="acuenta" class="form-control" placeholder="Ingresa un nuevo abono">
+                </div>
+
+                <div class="mb-3">
+                    <label for="estado_pedido" class="form-label">Estado del Pedido</label>
+                    <select name="estado_pedido" class="form-select">
+                        {% for value, label in opciones_estado %}
+                            <option value="{{ value }}" {% if contrato.estado_pedido == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> Guardar Cambios
+                </button>
+                <a href="{% url 'estado_contratos' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </form>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <h5 class="text-muted">Resumen</h5>
+        <ul class="list-group">
+            <li class="list-group-item">
+                <strong>Cliente:</strong> {{ contrato.cliente.get_full_name|default:contrato.cliente.username }}
+            </li>
+            <li class="list-group-item">
+                <strong>N° Proforma:</strong> {{ contrato.proforma.proforma_num }}
+            </li>
+            <li class="list-group-item">
+                <strong>Precio Total:</strong> S/. {{ contrato.preciototal|floatformat:2 }}
+            </li>
+            <li class="list-group-item">
+                <strong>A Cuenta:</strong> S/. {{ contrato.acuenta|floatformat:2 }}
+            </li>
+            <li class="list-group-item">
+                <strong>Saldo:</strong> S/. {{ contrato.saldo|floatformat:2 }}
+            </li>
+            <li class="list-group-item">
+                <strong>Estado de Deuda:</strong>
+                {% if contrato.estado_deuda == 'pagado' %}
+                    <span class="badge bg-success"><i class="fas fa-check-circle"></i> Pagado</span>
+                {% else %}
+                    <span class="badge bg-warning text-dark"><i class="fas fa-exclamation-triangle"></i> Debe</span>
+                {% endif %}
+            </li>
+        </ul>
+    </div>
+</div>
+
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

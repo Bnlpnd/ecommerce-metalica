@@ -44,7 +44,7 @@
           <ul class="dropdown-menu" aria-labelledby="trabajadorDropdown">
             <li><a class="dropdown-item" href="{% url 'bandeja_trabajador' %}">Bandeja Proformas</a></li>
             <li><a class="dropdown-item" href="{% url 'estado_proformas' %}">Estado Proformas</a></li>
-            <li><a class="dropdown-item" href="#">Estado Contratos</a></li>
+            <li><a class="dropdown-item" href="{% url 'estado_contratos' %}">Estado Contratos</a></li>
           </ul>
         </li>
       {% elif user.is_authenticated and user.profile.rol == 'cliente' %}
