@@ -7,15 +7,108 @@
     <title>Contrato {{ contrato.contrato_num }}</title>
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'fonts/fontawesome/css/all.min.css' %}">
+    <style>
+        .card {
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        .card-header {
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .section-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+        }
+        .section-header h4 {
+            margin: 0;
+            font-weight: 600;
+        }
+        .info-item {
+            background: white;
+            border-left: 4px solid #007bff;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 0 8px 8px 0;
+            transition: all 0.3s ease;
+        }
+        .info-item:hover {
+            background: #f8f9fa;
+            border-left-color: #0056b3;
+        }
+        .info-item strong {
+            color: #495057;
+            font-weight: 600;
+            display: inline-block;
+            min-width: 120px;
+        }
+        .badge-status {
+            font-size: 0.9em;
+            padding: 8px 12px;
+            border-radius: 15px;
+        }
+        .header-title {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: bold;
+        }
+        .product-image {
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .product-image:hover {
+            transform: scale(1.05);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        .form-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+        .opciones-table {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .table-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+    </style>
 </head>
-<body class="bg-light">
-
+<body class="gradient-bg">
 <div class="container py-4">
+    <!-- Encabezado Principal -->
     <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="text-primary">
-                <i class="fas fa-file-contract"></i> Contrato {{ contrato.contrato_num }}
-            </h2>
+        <div class="col-12 text-center">
+            <h1 class="header-title display-4 mb-2">
+                <i class="fas fa-file-contract"></i> Resumen de Contrato {{ contrato.contrato_num }}
+            </h1>
+            <p class="text-muted lead">Gestión integral del contrato y seguimiento</p>
         </div>
     </div>
 
@@ -32,70 +125,307 @@
       </div>
     {% endif %}
 
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <i class="fas fa-edit"></i> Editar Detalles del Contrato
+    <div class="row">
+        <!-- SECCIÓN 1: DATOS DEL CLIENTE -->
+        <div class="col-lg-4 mb-4">
+            <div class="section-header">
+                <h4><i class="fas fa-user-circle"></i> Datos del Cliente</h4>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <div class="info-item">
+                        <strong><i class="fas fa-user text-primary"></i> Nombre:</strong>
+                        {{ contrato.cliente.get_full_name|default:contrato.cliente.username }}
+                    </div>
+                    <div class="info-item">
+                        <strong><i class="fas fa-map-marker-alt text-danger"></i> Dirección:</strong>
+                        {{ contrato.cliente.profile.direccion|default:"No especificada" }}
+                    </div>
+                    <div class="info-item">
+                        <strong><i class="fas fa-city text-info"></i> Distrito:</strong>
+                        {{ contrato.cliente.profile.distrito|default:"No especificado" }}
+                    </div>
+                    <div class="info-item">
+                        <strong><i class="fas fa-id-card text-warning"></i> DNI:</strong>
+                        {{ contrato.cliente.profile.dni|default:"No especificado" }}
+                    </div>
+                    <div class="info-item">
+                        <strong><i class="fas fa-envelope text-success"></i> Email:</strong>
+                        {{ contrato.cliente.email }}
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            <form method="POST">
-                {% csrf_token %}
 
-                <div class="mb-3">
-                    <label for="fechaEntrega" class="form-label">Fecha de Entrega</label>
-                    <input type="date" name="fechaEntrega" class="form-control" value="{{ contrato.fechaEntrega|date:'Y-m-d' }}">
+        <!-- SECCIÓN 2: DETALLES DEL PEDIDO -->
+        <div class="col-lg-4 mb-4">
+            <div class="section-header">
+                <h4><i class="fas fa-clipboard-list"></i> Detalles del Pedido</h4>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <div class="info-item">
+                        <strong><i class="fas fa-calendar text-primary"></i> Fecha:</strong>
+                        {{ contrato.fecha|date:"d/m/Y" }}
+                    </div>
+                    <div class="info-item">
+                        <strong><i class="fas fa-calendar-check text-success"></i> F. Entrega:</strong>
+                        {{ contrato.fechaEntrega|date:"d/m/Y" }}
+                    </div>
+                    <div class="info-item">
+                        <strong><i class="fas fa-tasks text-info"></i> Estado:</strong>
+                        {% if contrato.estado_pedido == 'pendiente' %}
+                            <span class="badge bg-warning text-dark badge-status">
+                                <i class="fas fa-clock"></i> Pendiente
+                            </span>
+                        {% elif contrato.estado_pedido == 'en_produccion' %}
+                            <span class="badge bg-info badge-status">
+                                <i class="fas fa-cogs"></i> En Producción
+                            </span>
+                        {% else %}
+                            <span class="badge bg-success badge-status">
+                                <i class="fas fa-check-circle"></i> Entregado
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="info-item">
+                        <strong><i class="fas fa-dollar-sign text-success"></i> Precio Total:</strong>
+                        <span class="text-success fw-bold">S/. {{ contrato.preciototal|floatformat:2 }}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong><i class="fas fa-hand-holding-usd text-primary"></i> A Cuenta:</strong>
+                        <span class="text-primary fw-bold">S/. {{ contrato.acuenta|floatformat:2 }}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong><i class="fas fa-balance-scale text-danger"></i> Saldo:</strong>
+                        {% if contrato.saldo == 0 %}
+                            <span class="text-success fw-bold">S/. 0.00</span>
+                        {% else %}
+                            <span class="text-danger fw-bold">S/. {{ contrato.saldo|floatformat:2 }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="info-item">
+                        <strong><i class="fas fa-money-bill-wave text-warning"></i> Estado Deuda:</strong>
+                        {% if contrato.estado_deuda == 'pagado' %}
+                            <span class="badge bg-success badge-status">
+                                <i class="fas fa-check-circle"></i> Pagado
+                            </span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark badge-status">
+                                <i class="fas fa-exclamation-triangle"></i> Debe
+                            </span>
+                        {% endif %}
+                    </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="mb-3">
-                    <label for="acuenta" class="form-label">Monto A Cuenta</label>
-                    <input type="number" step="0.01" name="acuenta" class="form-control" placeholder="Ingresa un nuevo abono">
+        <!-- SECCIÓN 3: FORMULARIO DE EDICIÓN -->
+        <div class="col-lg-4 mb-4">
+            <div class="section-header">
+                <h4><i class="fas fa-edit"></i> Editar Contrato</h4>
+            </div>
+            <div class="card">
+                <div class="card-header form-card">
+                    <i class="fas fa-tools"></i> Panel de Control
                 </div>
-
-                <div class="mb-3">
-                    <label for="estado_pedido" class="form-label">Estado del Pedido</label>
-                    <select name="estado_pedido" class="form-select">
-                        {% for value, label in opciones_estado %}
-                            <option value="{{ value }}" {% if contrato.estado_pedido == value %}selected{% endif %}>{{ label }}</option>
-                        {% endfor %}
-                    </select>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="fechaEntrega" class="form-label fw-bold">
+                                <i class="fas fa-calendar-alt text-primary"></i> Fecha de Entrega
+                            </label>
+                            <input type="date" name="fechaEntrega" class="form-control" 
+                                   value="{{ contrato.fechaEntrega|date:'Y-m-d' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="acuenta" class="form-label fw-bold">
+                                <i class="fas fa-money-bill text-success"></i> Nuevo Abono
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">S/.</span>
+                                <input type="number" step="0.01" name="acuenta" class="form-control" 
+                                       placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="estado_pedido" class="form-label fw-bold">
+                                <i class="fas fa-list-check text-info"></i> Estado del Pedido
+                            </label>
+                            <select name="estado_pedido" class="form-select">
+                                {% for value, label in opciones_estado %}
+                                    <option value="{{ value }}" {% if contrato.estado_pedido == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-gradient">
+                                <i class="fas fa-save"></i> Guardar Cambios
+                            </button>
+                            <a href="{% url 'estado_contratos' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver
+                            </a>
+                        </div>
+                    </form>
                 </div>
-
-                <button type="submit" class="btn btn-success">
-                    <i class="fas fa-save"></i> Guardar Cambios
-                </button>
-                <a href="{% url 'estado_contratos' %}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Volver
-                </a>
-            </form>
+            </div>
         </div>
     </div>
 
-    <div class="mt-4">
-        <h5 class="text-muted">Resumen</h5>
-        <ul class="list-group">
-            <li class="list-group-item">
-                <strong>Cliente:</strong> {{ contrato.cliente.get_full_name|default:contrato.cliente.username }}
-            </li>
-            <li class="list-group-item">
-                <strong>N° Proforma:</strong> {{ contrato.proforma.proforma_num }}
-            </li>
-            <li class="list-group-item">
-                <strong>Precio Total:</strong> S/. {{ contrato.preciototal|floatformat:2 }}
-            </li>
-            <li class="list-group-item">
-                <strong>A Cuenta:</strong> S/. {{ contrato.acuenta|floatformat:2 }}
-            </li>
-            <li class="list-group-item">
-                <strong>Saldo:</strong> S/. {{ contrato.saldo|floatformat:2 }}
-            </li>
-            <li class="list-group-item">
-                <strong>Estado de Deuda:</strong>
-                {% if contrato.estado_deuda == 'pagado' %}
-                    <span class="badge bg-success"><i class="fas fa-check-circle"></i> Pagado</span>
-                {% else %}
-                    <span class="badge bg-warning text-dark"><i class="fas fa-exclamation-triangle"></i> Debe</span>
-                {% endif %}
-            </li>
-        </ul>
+    <!-- SECCIÓN 4: PRODUCTOS Y COTIZACIONES -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="section-header">
+                <h4><i class="fas fa-door-closed"></i> Producto y Cotización</h4>
+            </div>
+            
+            {% for cotizacion in contrato.proforma.cotizaciones.all %}
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="mb-0 text-primary">
+                                <i class="fas fa-cube"></i> 
+                                {{ cotizacion.producto.product.product_name }}
+                            </h5>
+                            <small class="text-muted">N° Proforma: {{ contrato.proforma.proforma_num }}</small>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <span class="badge bg-info badge-status">
+                                <i class="fas fa-tag"></i> Cantidad: {{ cotizacion.cantidad }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Imagen del Producto -->
+                        <div class="col-md-3 text-center mb-3">
+                            {% with imagen=cotizacion.producto.product_images.first %}
+                                {% if imagen %}
+                                    <img src="{{ imagen.image.url }}" 
+                                         alt="{{ cotizacion.producto.product.product_name }}"
+                                         class="img-fluid product-image"
+                                         style="max-height: 200px;">
+                                {% else %}
+                                    <div class="d-flex align-items-center justify-content-center bg-light product-image" 
+                                         style="height: 200px;">
+                                        <i class="fas fa-image fa-3x text-muted"></i>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        
+                        <!-- Detalles del Producto -->
+                        <div class="col-md-9">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <strong><i class="fas fa-ruler text-primary"></i> Medidas:</strong>
+                                        {{ cotizacion.alto }} × {{ cotizacion.ancho }} cm
+                                    </div>
+                                    <div class="info-item">
+                                        <strong><i class="fas fa-palette text-warning"></i> Color:</strong>
+                                        {{ cotizacion.color }}
+                                    </div>
+                                    <div class="info-item">
+                                        <strong><i class="fas fa-key text-info"></i> Chapa:</strong>
+                                        {{ cotizacion.chapa }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <strong><i class="fas fa-question-circle text-success"></i> Pregunta 1:</strong>
+                                        {{ cotizacion.pregunta_1|truncatechars:50 }}
+                                    </div>
+                                    <div class="info-item">
+                                        <strong><i class="fas fa-question-circle text-success"></i> Pregunta 2:</strong>
+                                        {{ cotizacion.pregunta_2|truncatechars:50 }}
+                                    </div>
+                                    <div class="info-item">
+                                        <strong><i class="fas fa-question-circle text-success"></i> Pregunta 3:</strong>
+                                        {{ cotizacion.pregunta_3|truncatechars:50 }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Tabla de Opciones de Cotización Seleccionadas -->
+            {% if contrato.opciones_elegidas.all %}
+            <div class="card opciones-table">
+                <div class="card-header table-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-check-circle"></i> Opciones de Cotización Seleccionadas
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th><i class="fas fa-tag"></i> Título</th>
+                                    <th><i class="fas fa-list-alt"></i> Descripción</th>
+                                    <th><i class="fas fa-hammer"></i> Material</th>
+                                    <th><i class="fas fa-tools"></i> P. Instalación</th>
+                                    <th><i class="fas fa-dollar-sign"></i> P. Real</th>
+                                    <th><i class="fas fa-calculator"></i> P. Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for opcion_contrato in contrato.opciones_elegidas.all %}
+                                <tr>
+                                    <td>
+                                        <strong class="text-primary">{{ opcion_contrato.opcion.titulo }}</strong>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ opcion_contrato.opcion.descripcion_adicional|default:"Sin descripción"|truncatechars:60 }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            {{ opcion_contrato.cotizacion.producto.material.material_name }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="text-info fw-bold">
+                                            S/. {{ opcion_contrato.opcion.precio_instalacion|floatformat:2 }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="text-primary fw-bold">
+                                            S/. {{ opcion_contrato.opcion.precio_real|floatformat:2 }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="text-success fw-bold fs-6">
+                                            S/. {{ opcion_contrato.opcion.preciototal|floatformat:2 }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                    <h5 class="text-muted">No hay opciones de cotización seleccionadas</h5>
+                    <p class="text-muted">Este contrato no tiene opciones específicas registradas.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 
