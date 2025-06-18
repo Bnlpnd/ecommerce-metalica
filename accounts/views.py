@@ -17,6 +17,13 @@ from django.db import models as django_models
 from django.http import HttpResponseForbidden
 from .forms import ClienteProfileForm
 from proforma.models import Proforma, Contrato
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django.template.loader import render_to_string
+from django.http import JsonResponse, HttpResponseForbidden
+from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
+from .forms import ClienteProfileForm
 
 
 def login_view(request):
@@ -227,8 +234,10 @@ def dashboard_cliente(request):
     return render(request, 'accounts/dashboard_cliente.html', context)
 
 @login_required
-def perfil_cliente(request):
-    """Vista para editar el perfil del cliente"""
+def ppperfil_cliente(request):
+    print(f"🧭 Ruta perfil_cliente activa - Método: {request.method}")
+
+    print(f"📥 Método usado: {request.method}")
     if not hasattr(request.user, 'profile') or request.user.profile.rol != 'cliente':
         return HttpResponseForbidden("Acceso denegado.")
     
@@ -236,17 +245,25 @@ def perfil_cliente(request):
     
     if request.method == 'POST':
         print("🔍 POST recibido - datos del formulario:")
+        print("📥 request.POST:", request.POST)
+        print("📥 request.FILES:", request.FILES)
+        
+        # Imprimir todos los datos del formulario
         for key, value in request.POST.items():
             print(f"   {key}: {value}")
             
         form = ClienteProfileForm(request.POST, request.FILES, user=request.user, profile=profile)
-        
+
         if form.is_valid():
             print("✅ Formulario válido - guardando cambios...")
             try:
                 # Usar el método save del formulario
                 form.save(request.user, profile)
-                messages.success(request, 'Perfil actualizado correctamente.')
+                print("💾 Guardado exitoso")
+                print("👤 Nuevo nombre:", request.user.first_name)
+                print("📌 Nueva dirección:", profile.direccion)
+                
+                messages.success(request, 'Perfilxx actualizado correctamente.')
                 return redirect('perfil_cliente')
             except Exception as e:
                 print(f"❌ Error guardando: {e}")
@@ -265,8 +282,40 @@ def perfil_cliente(request):
         'form': form,
         'profile': profile
     }
-    
+    print("📤 Contexto enviado a la plantilla:", context)
     return render(request, 'accounts/perfil_cliente.html', context)
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def perfil_cliente(request):
+    if not hasattr(request.user, 'profile') or request.user.profile.rol != 'cliente':
+        return HttpResponseForbidden("Acceso denegado.")
+
+    profile = request.user.profile
+
+    if request.method == 'POST':
+        print("📨 POST AJAX recibido")
+        form = ClienteProfileForm(request.POST, request.FILES, user=request.user, profile=profile)
+
+        if form.is_valid():
+            form.save(request.user, profile)
+
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                html = render_to_string('accounts/perfil_cliente_fragment.html', {
+                    'form': ClienteProfileForm(user=request.user, profile=profile),
+                    'profile': profile
+                }, request=request)
+                return JsonResponse({'success': True, 'html': html})
+
+            return redirect('perfil_cliente')
+
+        else:
+            errors = {field: error.get_json_data() for field, error in form.errors.items()}
+            return JsonResponse({'success': False, 'errors': errors}, status=400)
+
+    else:
+        form = ClienteProfileForm(user=request.user, profile=profile)
+        return render(request, 'accounts/perfil_cliente.html', {'form': form, 'profile': profile})
 
 @login_required 
 def mis_proformas_cliente(request):

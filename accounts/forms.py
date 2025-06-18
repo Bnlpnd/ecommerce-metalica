@@ -4,7 +4,6 @@ from .models import Profile
 
 
 class ClienteProfileForm(forms.Form):
-    """Formulario para editar el perfil del cliente"""
     first_name = forms.CharField(
         max_length=30,
         required=True,
@@ -102,7 +101,6 @@ class ClienteProfileForm(forms.Form):
             self.fields['dni'].initial = profile.dni
 
     def save(self, user, profile):
-        """Guarda los cambios en User y Profile"""
         # Actualizar User
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']

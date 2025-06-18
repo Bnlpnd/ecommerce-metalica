@@ -2,6 +2,8 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 from accounts.views import login_view, register , activate_email,logout_view
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
    # usuario
@@ -22,4 +24,4 @@ urlpatterns = [
    path('mis-contratos/', views.mis_contratos_cliente, name='mis_contratos_cliente'),
    path('contrato/<str:contrato_num>/', views.ver_contrato_cliente, name='ver_contrato_cliente'),
    path('generar-contrato/<str:proforma_num>/', views.generar_contrato_cliente, name='generar_contrato_cliente'),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

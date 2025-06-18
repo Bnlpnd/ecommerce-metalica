@@ -15,7 +15,7 @@ class Profile(BaseModel):
     user = models.OneToOneField(User , on_delete=models.CASCADE , related_name="profile")
     is_email_verified = models.BooleanField(default=False)
     email_token = models.CharField(max_length=100 , null=True , blank=True)
-    profile_image = models.ImageField(upload_to = 'profile',blank=True, null=True)
+    profile_image = models.ImageField(upload_to = 'profile',default='images/profile/user.png',blank=True, null=True)
     
     #datos del cliente
     direccion = models.CharField(max_length=255, blank=True)

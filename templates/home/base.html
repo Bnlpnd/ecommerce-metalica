@@ -3,21 +3,21 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    {% load static %}
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>Estructura Metálica Santa Ana</title>
-    <!-- Required meta tags -->
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
 
-    <!-- Bootstrap CSS v5.2.1 -->
+    <!-- ✅ Bootstrap CSS desde static -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <!-- ✅ FontAwesome -->
+    <link href="{% static 'fonts/fontawesome/css/all.min.css' %}" rel="stylesheet">
 
-    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
-    
-
+    {% block extra_css %}{% endblock %}
   </head>
+
 
   <body>
     <!-- includes/navbar.html-->
@@ -34,12 +34,11 @@
     <!-- includes/footer.html-->
     {% include 'includes/footer.html' %}
 
-    <!-- Bootstrap JavaScript Libraries -->
-    <script src="{% static 'js/bootstrap.min.js' %}"></script>
-    
-    <!-- Bootstrap JS Bundle con Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ✅ Bootstrap JS desde static -->
 
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    
+    {% block extra_js %}{% endblock %}
 
   </body>
 
