@@ -211,6 +211,14 @@ def forgot_password(request):
 
     return render(request, 'accounts/forgot_password.html')
 
+def get_cliente_dashboard_stats(user):
+    return {
+        'total_proformas': Proforma.objects.filter(cliente=user).count(),
+        'total_contratos': Contrato.objects.filter(proforma__cliente=user).count(),
+        'proformas_pendientes': Proforma.objects.filter(cliente=user, estado='pendiente').count(),
+        'contratos_pendientes': Contrato.objects.filter(proforma__cliente=user, estado_pedido='pendiente').count(),
+    }
+
 @login_required
 def dashboard_cliente(request):
     """Dashboard principal para clientes"""
@@ -219,19 +227,8 @@ def dashboard_cliente(request):
         return HttpResponseForbidden("Acceso denegado. Esta sección es solo para clientes.")
     
     # Estadísticas básicas para mostrar en el dashboard
-    total_proformas = Proforma.objects.filter(cliente=request.user).count()
-    total_contratos = Contrato.objects.filter(proforma__cliente=request.user).count()
-    proformas_pendientes = Proforma.objects.filter(cliente=request.user, estado='pendiente').count()
-    contratos_pendientes = Contrato.objects.filter(proforma__cliente=request.user, estado_pedido='pendiente').count()
-    
-    context = {
-        'total_proformas': total_proformas,
-        'total_contratos': total_contratos,
-        'proformas_pendientes': proformas_pendientes,
-        'contratos_pendientes': contratos_pendientes,
-    }
-    
-    return render(request, 'accounts/dashboard_cliente.html', context)
+    stats = get_cliente_dashboard_stats(request.user)
+    return render(request, 'accounts/dashboard_cliente.html', stats)
 
 @login_required
 def ppperfil_cliente(request):
@@ -315,7 +312,8 @@ def perfil_cliente(request):
 
     else:
         form = ClienteProfileForm(user=request.user, profile=profile)
-        return render(request, 'accounts/perfil_cliente.html', {'form': form, 'profile': profile})
+        stats = get_cliente_dashboard_stats(request.user)
+        return render(request, 'accounts/perfil_cliente.html', {'form': form, 'profile': profile, 'tab': 'perfil', **stats})
 
 @login_required 
 def mis_proformas_cliente(request):
@@ -342,11 +340,15 @@ def mis_proformas_cliente(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    stats = get_cliente_dashboard_stats(request.user)
+
     context = {
         'proformas': page_obj,
         'numero_proforma': numero_proforma,
         'estado_filtro': estado_filtro,
-        'total_proformas': proformas.count(),
+        'total_proformas_filtered': proformas.count(),
+        'tab': 'proformas',
+         **stats,
     }
     
     return render(request, 'accounts/mis_proformas_cliente.html', context)
@@ -387,13 +389,17 @@ def mis_contratos_cliente(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    stats = get_cliente_dashboard_stats(request.user)
+    
     context = {
         'contratos': page_obj,
         'numero_contrato': numero_contrato,
         'numero_proforma': numero_proforma,
         'estado_pedido': estado_pedido,
         'estado_deuda': estado_deuda,
-        'total_contratos': contratos.count(),
+        'total_contratos_filtered': contratos.count(),
+        'tab': 'contratos',
+         **stats,
     }
     
     return render(request, 'accounts/mis_contratos_cliente.html', context)
@@ -494,13 +500,17 @@ def generar_contrato_cliente(request, proforma_num):
         if cotizacion.opciones.exists():
             # Tomar la primera opción como referencia para el cálculo
             total_estimado += float(cotizacion.opciones.first().preciototal or 0)
+    
+    stats = get_cliente_dashboard_stats(request.user)
 
     context = {
         'proforma': proforma,
         'cotizaciones': cotizaciones,
         'total_estimado': total_estimado,
         'abono_requerido': total_estimado * 0.5,
-        'fecha_entrega_estimada': date.today() + timedelta(days=10)
+        'fecha_entrega_estimada': date.today() + timedelta(days=10),
+        'tab': 'proformas',
+        **stats
     }
 
     return render(request, 'accounts/generar_contrato_cliente.html', context)
