@@ -1,3 +1,6 @@
+{% extends 'accounts/dashboard_base.html' %}
+
+{% block tab %}
 <div class="row">
     <div id="mensaje-exito" class="alert alert-success d-none" role="alert">
         <i class="fas fa-check-circle"></i> Perfil actualizado.
@@ -25,45 +28,4 @@
         
     </div>
 </div>
-
-<script>
-function activarFormularioPerfil() {
-    const form = document.querySelector('#perfil-container form');
-    if (form) {
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
-            const formData = new FormData(form);
-
-            fetch("{% url 'perfil_cliente' %}", {
-                method: "POST",
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: formData,
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const mensaje = document.getElementById('mensaje-exito');
-                    if (mensaje) {
-                        mensaje.classList.remove('d-none');
-                        setTimeout(() => mensaje.classList.add('d-none'), 3000);
-                    }
-                    // Reemplazar HTML y volver a activar script
-                    document.getElementById('perfil-container').innerHTML = data.html;
-                    activarFormularioPerfil(); // 🧠 importante
-                } else {
-                    alert("⚠️ Error al guardar los datos.");
-                }
-            })
-            .catch(error => {
-                console.error("❌ Error en el guardado AJAX:", error);
-            });
-        });
-    }
-}
-
-document.addEventListener('DOMContentLoaded', activarFormularioPerfil);
-</script>
-
-
+{% endblock %} 

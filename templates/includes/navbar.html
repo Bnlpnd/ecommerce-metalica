@@ -56,8 +56,12 @@
 
     <div class="col-md-3 text-end">
       {% if user.is_authenticated %}
-      <a class="me-3 py-2 link-body-emphasis text-decoration-none" href="#"
-        >Hola, <em>{{ user.first_name }}</em>
+      <a class="me-3 py-2 link-body-emphasis text-decoration-none" href="#">
+            <img src="{% if profile.profile_image %}{{profile.profile_image.url}}{% else %}/images/profile/user.png{% endif %}" src="{{ profile.profile_image.url }}" 
+                    alt="Foto de perfil" 
+                    class="rounded-circle"
+                    style="width: 24px; height: 24px; object-fit: cover; margin-right: 4px;">
+        <span>Hola, <em>{{ user.first_name }}</em></span>
       </a>
       <a
         class="me-3 py-2 link-body-emphasis text-decoration-none"
