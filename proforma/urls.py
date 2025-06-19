@@ -21,5 +21,7 @@ urlpatterns = [
     path('estado-contratos/', views.estado_contratos, name='estado_contratos'),
     path('contrato/<str:contrato_num>/', views.ver_contrato, name='ver_contrato'),
     path('contratos/anular/<str:contrato_num>/', views.anular_contrato_cliente, name='anular_contrato_cliente'),
+    path('mis-proformas/', views.redireccionar_mis_proformas, name='mis_proformas'),
+
 
 ]

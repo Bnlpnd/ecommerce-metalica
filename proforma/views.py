@@ -123,6 +123,18 @@ def generar_numero_proforma_unico():
             contador.save()
             return numero
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
+from django.http import HttpResponseForbidden
+
+@login_required
+def redireccionar_mis_proformas(request):
+    if hasattr(request.user, 'profile'):
+        if request.user.profile.rol == 'cliente':
+            return redirect('mis_proformas_cliente')
+        elif request.user.profile.rol == 'trabajador':
+            return redirect('estado_proformas')
+    return HttpResponseForbidden("Acceso no permitido.")
 
 @login_required
 def guardar_proforma(request):
@@ -197,7 +209,7 @@ def guardar_proforma(request):
             messages.warning(request, "No se pudo guardar ninguna cotización.")
             return redirect('formulario_proforma')
 
-        return redirect('mis_proformas')
+        return redireccionar_mis_proformas(request)
 
 from django.db.models import OuterRef, Exists, Subquery
 @login_required
