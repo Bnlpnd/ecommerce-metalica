@@ -231,6 +231,58 @@ def dashboard_cliente(request):
     return render(request, 'accounts/dashboard_cliente.html', stats)
 
 @login_required
+def ppperfil_cliente(request):
+    print(f"🧭 Ruta perfil_cliente activa - Método: {request.method}")
+
+    print(f"📥 Método usado: {request.method}")
+    if not hasattr(request.user, 'profile') or request.user.profile.rol != 'cliente':
+        return HttpResponseForbidden("Acceso denegado.")
+    
+    profile = request.user.profile
+    
+    if request.method == 'POST':
+        print("🔍 POST recibido - datos del formulario:")
+        print("📥 request.POST:", request.POST)
+        print("📥 request.FILES:", request.FILES)
+        
+        # Imprimir todos los datos del formulario
+        for key, value in request.POST.items():
+            print(f"   {key}: {value}")
+            
+        form = ClienteProfileForm(request.POST, request.FILES, user=request.user, profile=profile)
+
+        if form.is_valid():
+            print("✅ Formulario válido - guardando cambios...")
+            try:
+                # Usar el método save del formulario
+                form.save(request.user, profile)
+                print("💾 Guardado exitoso")
+                print("👤 Nuevo nombre:", request.user.first_name)
+                print("📌 Nueva dirección:", profile.direccion)
+                
+                messages.success(request, 'Perfilxx actualizado correctamente.')
+                return redirect('perfil_cliente')
+            except Exception as e:
+                print(f"❌ Error guardando: {e}")
+                messages.error(request, f'Error al guardar el perfil: {str(e)}')
+        else:
+            print("❌ Formulario inválido - errores:")
+            for field, errors in form.errors.items():
+                print(f"   {field}: {errors}")
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'errors': form.errors})
+    else:
+        form = ClienteProfileForm(user=request.user, profile=profile)
+    
+    context = {
+        'form': form,
+        'profile': profile
+    }
+    print("📤 Contexto enviado a la plantilla:", context)
+    return render(request, 'accounts/perfil_cliente.html', context)
+
+@login_required
 @require_http_methods(["GET", "POST"])
 def perfil_cliente(request):
     if not hasattr(request.user, 'profile') or request.user.profile.rol != 'cliente':
@@ -361,9 +413,13 @@ def ver_contrato_cliente(request, contrato_num):
     # Verificar que el contrato pertenezca al cliente
     contrato = get_object_or_404(Contrato, contrato_num=contrato_num, proforma__cliente=request.user)
     
+    stats = get_cliente_dashboard_stats(request.user)
+    
     context = {
         'contrato': contrato,
-        'es_cliente': True  # Flag para mostrar vista de solo lectura
+        'es_cliente': True,  # Flag para mostrar vista de solo lectura
+        'tab': 'contratos',
+         **stats,
     }
     
     return render(request, 'accounts/ver_contrato_cliente.html', context)

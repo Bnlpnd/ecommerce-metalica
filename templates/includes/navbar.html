@@ -6,15 +6,6 @@
   >
     <div class="col-md-3 mb-2 mb-md-0">
       <a href="/" class="d-inline-flex link-body-emphasis text-decoration-none">
-        <!--<svg
-          class="bi"
-          width="40"
-          height="32"
-          role="img"
-          aria-label="Bootstrap"
-        >
-          <use xlink:href="#bootstrap" />
-        </svg>-->
         <img
           src="{% static 'images/santaana-sf2.png' %}"
           width="190"
@@ -28,27 +19,20 @@
     <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
       <li><a href="/" class="nav-link px-2 text-secondary">Inicio</a></li>
       <li>
-        <a href="{% url 'galeria' %}" class="nav-link px-2 text-secondary"
+        <a  href="{% url 'galeria' as galery_url %}{{ galery_url }}" class="nav-link px-2 {% if request.path == galery_url %}text-primary{% else %}text-secondary{% endif %}"
           >Galería</a
         >
       </li>
       <li>
-        <a href="{% url 'proforma' %}" class="nav-link px-2 text-secondary">Proforma</a>
+        <a href="{% url 'proforma' as proforma_url %}{{ proforma_url }}" class="nav-link px-2 {% if request.path == proforma_url %}text-primary{% else %}text-secondary{% endif %}">Proforma</a>
       </li>
       {% if user.is_authenticated and user.profile.rol == 'trabajador' %}
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle px-2 text-secondary" href="#" id="trabajadorDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Dashboard
-          </a>
-          <ul class="dropdown-menu" aria-labelledby="trabajadorDropdown">
-            <li><a class="dropdown-item" href="{% url 'bandeja_trabajador' %}">Bandeja Proformas</a></li>
-            <li><a class="dropdown-item" href="{% url 'estado_proformas' %}">Estado Proformas</a></li>
-            <li><a class="dropdown-item" href="{% url 'estado_contratos' %}">Estado Contratos</a></li>
-          </ul>
+        <li>
+          <a href="{% url 'dashboard_trabajador' as dashboard_url %}{{ dashboard_url }}" class="nav-link px-2 {% if request.path == dashboard_url %}text-primary{% else %}text-secondary{% endif %}">Dashboard</a>
         </li>
       {% elif user.is_authenticated and user.profile.rol == 'cliente' %}
         <li>
-          <a href="{% url 'dashboard_cliente' %}" class="nav-link px-2 text-secondary">Dashboard</a>
+          <a href="{% url 'dashboard_cliente' as dashboard_url %}{{ dashboard_url }}" class="nav-link px-2 {% if request.path == dashboard_url %}text-primary{% else %}text-secondary{% endif %}">Dashboard</a>
         </li>
       {% endif %}
 

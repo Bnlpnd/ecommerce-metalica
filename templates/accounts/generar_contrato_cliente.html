@@ -1,7 +1,7 @@
-{% extends 'accounts/dashboard_base.html' %}
+{% extends 'accounts/dashboard_cliente_base.html' %}
 
 {% block tab %}
-<div class="container py-4">
+<div class="container">
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -11,7 +11,7 @@
 
             <!-- Información de la Proforma -->
             <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header">
                     <h6 class="mb-0"><i class="fas fa-info-circle"></i> Información de la Proforma</h6>
                 </div>
                 <div class="card-body">
@@ -32,7 +32,7 @@
             </div>
 
             <!-- Información de Pago -->
-            <div class="alert alert-info">
+            <div class="card p-4 mb-4">
                 <div class="row align-items-center">
                     <div class="col-md-8">
                         <h5 class="alert-heading"><i class="fas fa-calculator"></i> Información de Pago</h5>
@@ -49,7 +49,7 @@
             </div>
 
             <!-- Información de Entrega -->
-            <div class="alert alert-success">
+            <div class="card p-4 mb-4">
                 <div class="row align-items-center">
                     <div class="col-md-8">
                         <h5 class="alert-heading"><i class="fas fa-calendar-check"></i> Fecha de Entrega</h5>
@@ -152,7 +152,7 @@
 
                 <!-- Detalles Adicionales -->
                 <div class="card mb-4">
-                    <div class="card-header bg-secondary text-white">
+                    <div class="card-header">
                         <h6 class="mb-0"><i class="fas fa-comment"></i> Detalles Adicionales (Opcional)</h6>
                     </div>
                     <div class="card-body">
@@ -170,8 +170,8 @@
                 </div>
 
                 <!-- Resumen Final -->
-                <div class="card border-success mb-4">
-                    <div class="card-header bg-success text-white">
+                <div class="card mb-4">
+                    <div class="card-header">
                         <h6 class="mb-0"><i class="fas fa-check-circle"></i> Resumen del Contrato</h6>
                     </div>
                     <div class="card-body">

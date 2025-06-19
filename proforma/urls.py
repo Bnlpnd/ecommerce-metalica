@@ -9,10 +9,13 @@ urlpatterns = [
     path('guardar-proforma/', guardar_proforma, name='guardar_proforma'),
     path('formulario/', formulario_proforma, name='formulario_proforma'),
 
+    # Dashboard cliente
+    path('dashboard/', views.dashboard_trabajador, name='dashboard_trabajador'),
     path('bandeja/', views.bandeja_trabajador, name='bandeja_trabajador'),
     path('bandeja/<str:proforma_num>/', views.bandeja_trabajador, name='bandeja_trabajador_con_id'),
 
-    path('ver/<str:proforma_num>/', views.ver_proforma, name='ver_proforma'),
+    path('ver/<str:proforma_num>', views.ver_proforma, name='ver_proforma'),
+    path('ver/<str:without_layout>/<str:proforma_num>', views.ver_proforma, name='ver_proforma'),
     path('guardar-opciones/', views.guardar_opciones_cotizacion, name='guardar_opciones_cotizacion'),
     path('predecir-precio/', views.predecir_precio, name='predecir_precio'),
     path('proforma/pdf/<str:proforma_num>/', views.generar_pdf_proforma, name='generar_pdf_proforma'),

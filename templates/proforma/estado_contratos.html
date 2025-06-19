@@ -1,107 +1,22 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estado de Contratos</title>
-    <!-- Bootstrap CSS -->
-    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="{% static 'fonts/fontawesome/css/all.min.css' %}">
-    <!-- CSS personalizado -->
-    <style>
-        .card {
-            transition: all 0.3s ease;
-            border: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-        
-        .table-hover tbody tr:hover {
-            background-color: rgba(13, 110, 253, 0.1);
-        }
-        
-        .btn-action {
-            margin: 0 2px;
-            transition: all 0.2s ease;
-        }
-        
-        .btn-action:hover {
-            transform: scale(1.1);
-        }
-        
-        .badge {
-            font-size: 0.8em;
-        }
-        
-        .search-filters {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-        
-        .search-filters .form-control,
-        .search-filters .form-select {
-            border: none;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .search-filters .form-control:focus,
-        .search-filters .form-select:focus {
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transform: translateY(-1px);
-        }
-        
-        .header-title {
-            color: #2c3e50;
-            font-weight: 700;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .stats-badge {
-            background: linear-gradient(45deg, #28a745, #20c997);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            box-shadow: 0 2px 10px rgba(40, 167, 69, 0.3);
-        }
-    </style>
-</head>
-<body class="bg-light">
+{% extends 'accounts/dashboard_trabajador_base.html' %}
 
-<div class="container-fluid mt-4">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h1 class="header-title">
-                    <i class="fas fa-file-contract text-primary"></i> 
-                    Lista de Contratos
-                </h1>
-                <div class="stats-badge">
-                    <i class="fas fa-chart-bar"></i> 
-                    Total: {{ total_contratos }} contrato{{ total_contratos|pluralize }}
-                </div>
-            </div>
+{% block tab %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4><i class="fas fa-file-contract text-success"></i> Lista de Contratos</h4>
+            <span class="badge bg-success">{{ total_contratos }} contrato{{ total_contratos|pluralize }}</span>
         </div>
-    </div>
 
-    <!-- Panel de Filtros -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="search-filters">
-                <form method="GET" class="row g-3 align-items-end">
-                    <div class="col-md-2">
-                        <label class="form-label text-white fw-bold">
-                            <i class="fas fa-user"></i> Cliente
-                        </label>
+        <!-- Panel de Filtros -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-filter"></i> Filtros de Búsqueda</h6>
+            </div>
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Cliente</label>
                         <input type="text" 
                                class="form-control" 
                                name="nombre_cliente" 
@@ -109,10 +24,8 @@
                                placeholder="Buscar por nombre...">
                     </div>
                     
-                    <div class="col-md-2">
-                        <label class="form-label text-white fw-bold">
-                            <i class="fas fa-file-contract"></i> N° Contrato
-                        </label>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">N° Contrato</label>
                         <input type="text" 
                                class="form-control" 
                                name="numero_contrato" 
@@ -120,10 +33,8 @@
                                placeholder="Ej: C0001">
                     </div>
                     
-                    <div class="col-md-2">
-                        <label class="form-label text-white fw-bold">
-                            <i class="fas fa-file-invoice"></i> N° Proforma
-                        </label>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">N° Proforma</label>
                         <input type="text" 
                                class="form-control" 
                                name="numero_proforma" 
@@ -131,10 +42,8 @@
                                placeholder="Ej: P0001">
                     </div>
                     
-                    <div class="col-md-2">
-                        <label class="form-label text-white fw-bold">
-                            <i class="fas fa-tasks"></i> Estado Pedido
-                        </label>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Estado Pedido</label>
                         <select class="form-select" name="estado_pedido">
                             <option value="todos" {% if estado_pedido == 'todos' or not estado_pedido %}selected{% endif %}>
                                 Todos
@@ -151,10 +60,8 @@
                         </select>
                     </div>
                     
-                    <div class="col-md-2">
-                        <label class="form-label text-white fw-bold">
-                            <i class="fas fa-money-bill-wave"></i> Estado Deuda
-                        </label>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Estado Deuda</label>
                         <select class="form-select" name="estado_deuda">
                             <option value="todos" {% if estado_deuda == 'todos' or not estado_deuda %}selected{% endif %}>
                                 Todos
@@ -168,52 +75,41 @@
                         </select>
                     </div>
                     
-                    <div class="col-md-2">
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-warning btn-lg flex-fill">
-                                <i class="fas fa-search"></i> Buscar
-                            </button>
-                            <a href="{% url 'estado_contratos' %}" class="btn btn-outline-light btn-lg">
-                                <i class="fas fa-sync-alt"></i>
-                            </a>
-                        </div>
+                    <div class="col-md-3 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Buscar
+                        </button>
+                        <a href="{% url 'estado_contratos' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-sync-alt"></i> Limpiar
+                        </a>
                     </div>
                 </form>
             </div>
         </div>
-    </div>
 
-    <!-- Tabla de Contratos -->
-    <div class="row">
-        <div class="col-12">
+        <!-- Tabla de Contratos -->
+        {% if contratos %}
             <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-table"></i> 
-                        Resultados de Contratos
-                    </h5>
-                </div>
                 <div class="card-body p-0">
-                    {% if contratos %}
-                        <div class="table-responsive">
-                            <table class="table table-hover table-striped mb-0">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th><i class="fas fa-file-contract"></i> N° Contrato</th>
-                                        <th><i class="fas fa-file-invoice"></i> N° Proforma</th>
-                                        <th><i class="fas fa-user"></i> Cliente</th>
-                                        <th><i class="fas fa-calendar"></i> F. Emisión</th>
-                                        <th><i class="fas fa-calendar-check"></i> F. Entrega</th>
-                                        <th><i class="fas fa-dollar-sign"></i> Total</th>
-                                        <th><i class="fas fa-hand-holding-usd"></i> A Cuenta</th>
-                                        <th><i class="fas fa-balance-scale"></i> Saldo</th>
-                                        <th><i class="fas fa-tasks"></i> Estado Pedido</th>
-                                        <th><i class="fas fa-money-bill-wave"></i> Estado Deuda</th>
-                                        <th><i class="fas fa-cogs"></i> Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for contrato in contratos %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th><i class="fas fa-file-contract"></i> N° Contrato</th>
+                                    <th><i class="fas fa-file-invoice"></i> N° Proforma</th>
+                                    <th><i class="fas fa-user"></i> Cliente</th>
+                                    <th><i class="fas fa-calendar"></i> F. Emisión</th>
+                                    <th><i class="fas fa-calendar-check"></i> F. Entrega</th>
+                                    <th><i class="fas fa-dollar-sign"></i> Total</th>
+                                    <th><i class="fas fa-hand-holding-usd"></i> A Cuenta</th>
+                                    <th><i class="fas fa-balance-scale"></i> Saldo</th>
+                                    <th><i class="fas fa-tasks"></i> Estado Pedido</th>
+                                    <th><i class="fas fa-money-bill-wave"></i> Estado Deuda</th>
+                                    <th><i class="fas fa-cogs"></i> Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for contrato in contratos %}
                                     <tr>
                                         <td>
                                             <strong class="text-primary">{{ contrato.contrato_num }}</strong>
@@ -298,7 +194,7 @@
                                                 {% if contrato.pdf %}
                                                     <a href="{{ contrato.pdf.url }}" 
                                                        target="_blank"
-                                                       class="btn btn-outline-success btn-sm btn-action" 
+                                                       class="btn btn-outline-danger btn-sm btn-action" 
                                                        title="Ver PDF del contrato">
                                                         <i class="fas fa-file-pdf"></i>
                                                     </a>
@@ -312,27 +208,61 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-5">
-                            <div class="mb-3">
-                                <i class="fas fa-inbox fa-4x text-muted"></i>
-                            </div>
-                            <h5 class="text-muted">No se encontraron contratos</h5>
-                            <p class="text-muted">No hay contratos registrados en el sistema</p>
-                        </div>
-                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            <!-- Paginación -->
+            {% if contratos.has_other_pages %}
+                <nav aria-label="Paginación" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if contratos.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{% if nombre_cliente %}nombre_cliente={{ nombre_cliente }}&{% endif %}{% if numero_proforma %}numero_proforma={{ numero_proforma }}&{% endif %}{% if estado_filtro %}estado={{ estado_filtro }}&{% endif %}page=1">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?{% if nombre_cliente %}nombre_cliente={{ nombre_cliente }}&{% endif %}{% if numero_proforma %}numero_proforma={{ numero_proforma }}&{% endif %}{% if estado_filtro %}estado={{ estado_filtro }}&{% endif %}page={{ contratos.previous_page_number }}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                                        
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Página {{ contratos.number }} de {{ contratos.paginator.num_pages }}
+                            </span>
+                        </li>
+
+                        {% if contratos.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{% if nombre_cliente %}nombre_cliente={{ nombre_cliente }}&{% endif %}{% if numero_proforma %}numero_proforma={{ numero_proforma }}&{% endif %}{% if estado_filtro %}estado={{ estado_filtro }}&{% endif %}page={{ contratos.next_page_number }}">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?{% if nombre_cliente %}nombre_cliente={{ nombre_cliente }}&{% endif %}{% if numero_proforma %}numero_proforma={{ numero_proforma }}&{% endif %}{% if estado_filtro %}estado={{ estado_filtro }}&{% endif %}page={{ contratos.paginator.num_pages }}">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+
+        {% else %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-file-contract fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">No se encontraron contratos</h5>
+                    <p class="text-muted">No hay contratos registrados en el sistema</p>
+                </div>
+            </div>
+        {% endif %}
     </div>
-</div>
-
-<!-- Bootstrap JS -->
-<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
-
-</body>
-</html>
+</div> 
+{% endblock %} 
