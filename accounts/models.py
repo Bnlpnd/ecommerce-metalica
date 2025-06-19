@@ -21,7 +21,8 @@ class Profile(BaseModel):
     direccion = models.CharField(max_length=255, blank=True)
     distrito = models.CharField(max_length=255, default="Lambayeque", blank=True)
     referencia = models.CharField(max_length=255, blank=True)
-    dni = models.CharField(max_length=15, blank=True)
+    dni = models.CharField(max_length=8, blank=True)
+    phone_number = models.CharField(max_length=9, blank=True)
     
     # Rol por defecto
     rol = models.CharField(max_length=20, choices=ROL_CHOICES, default='cliente')
@@ -38,7 +39,7 @@ def crear_perfil_usuario(sender, instance, created, **kwargs):
             Profile.objects.create(
                 user=instance, 
                 rol='cliente',
-                email_token=email_token
+                email_token=email_token 
             )
             email = instance.email
             send_account_activation_email(email, email_token)

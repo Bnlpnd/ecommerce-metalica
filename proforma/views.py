@@ -109,10 +109,24 @@ def formulario_proforma(request):
     return render(request, 'product/proforma.html', {
         'productos': productos})
 
+from proforma.models import Proforma
+from proforma.models import ContadorProforma
+
+def generar_numero_proforma_unico():
+    contador, _ = ContadorProforma.objects.get_or_create(pk=1)
+
+    while True:
+        contador.ultimo_numero += 1
+        numero = f"P{contador.ultimo_numero:04d}"
+        if not Proforma.objects.filter(proforma_num=numero).exists():
+            contador.save()
+            return numero
+
+
 @login_required
 def guardar_proforma(request):
     if request.method == 'POST':
-        numero = f"P{str(Proforma.objects.count() + 1).zfill(4)}"
+        numero = generar_numero_proforma_unico()
         proforma = Proforma.objects.create(
             proforma_num=numero,
             cliente=request.user,

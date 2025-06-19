@@ -4,9 +4,13 @@ from products.models import ProductMaterial, Product, Material
 from base.models import BaseModel
 from django.utils.text import slugify
 
+
+class ContadorProforma(models.Model):
+    ultimo_numero = models.PositiveIntegerField(default=0)
+
 #proforma 
 class Proforma(BaseModel):
-    proforma_num = models.CharField(max_length=100) #P0001
+    proforma_num = models.CharField(max_length=100, unique=True, blank=True) #P0001
     estado = models.CharField(max_length=20, default='pendiente')  # pendiente, revisado, etc.
     fecha = models.DateField(auto_now_add=True)
     preciototal = models.DecimalField(max_digits=10, decimal_places=2, default=0) #se le suma si hay instalacion

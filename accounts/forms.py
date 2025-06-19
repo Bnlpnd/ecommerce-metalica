@@ -9,7 +9,7 @@ class ClienteProfileForm(forms.Form):
         required=True,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Ingresa tu nombre'
+            'placeholder': 'Nombre (obligatorio)'
         }),
         label='Nombre'
     )
@@ -19,7 +19,7 @@ class ClienteProfileForm(forms.Form):
         required=True,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Ingresa tu apellido'
+            'placeholder': 'Apellido (obligatorio)'
         }),
         label='Apellido'
     )
@@ -36,20 +36,20 @@ class ClienteProfileForm(forms.Form):
     
     direccion = forms.CharField(
         max_length=255,
-        required=False,
+        required=True,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Ingresa tu dirección completa'
+            'placeholder': 'Dirección completa (obligatorio)'
         }),
         label='Dirección'
     )
     
     distrito = forms.CharField(
         max_length=255,
-        required=False,
+        required=True,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Ingresa tu distrito'
+            'placeholder': 'Distrito (obligatorio)'
         }),
         label='Distrito'
     )
@@ -65,14 +65,25 @@ class ClienteProfileForm(forms.Form):
     )
     
     dni = forms.CharField(
-        max_length=15,
-        required=False,
+        max_length=8,
+        required=True,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Ingresa tu DNI',
+            'placeholder': 'DNI (obligatorio)',
             'maxlength': '8'
         }),
         label='DNI'
+    )
+    
+    phone_number = forms.CharField(
+        max_length=9,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Celular (obligatorio)',
+            'maxlength': '9',
+        }),
+        label='Celular'
     )
     
     profile_image = forms.ImageField(
@@ -99,6 +110,7 @@ class ClienteProfileForm(forms.Form):
             self.fields['distrito'].initial = profile.distrito
             self.fields['referencia'].initial = profile.referencia
             self.fields['dni'].initial = profile.dni
+            self.fields['phone_number'].initial = profile.phone_number
 
     def save(self, user, profile):
         # Actualizar User
@@ -110,7 +122,8 @@ class ClienteProfileForm(forms.Form):
         profile.direccion = self.cleaned_data['direccion']
         profile.distrito = self.cleaned_data['distrito']
         profile.referencia = self.cleaned_data['referencia']
-        profile.dni = self.cleaned_data['dni']
+        profile.dni = self.cleaned_data['dni']        
+        profile.phone_number = self.cleaned_data['phone_number']
         
         # Manejar imagen de perfil
         if self.cleaned_data['profile_image']:
