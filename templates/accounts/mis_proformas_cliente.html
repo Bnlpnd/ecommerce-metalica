@@ -125,15 +125,23 @@
                                             {% if proforma.estado == 'atendido' %}
                                                 {% with limite=proforma.fecha|add:"20"|date:"U" hoy=now|date:"U" %}
                                                     {% if hoy <= limite %}
-                                                        <a href="{% url 'generar_contrato_cliente' proforma.proforma_num %}" 
-                                                           class="btn btn-outline-primary btn-sm" 
-                                                           title="Generar contrato">
-                                                            <i class="fas fa-file-contract"></i>
-                                                        </a>
+                                                        {% if proforma.tiene_contrato %}
+                                                            <a href="{% url 'mis_contratos_cliente' %}" 
+                                                            class="btn btn-outline-info btn-sm" 
+                                                            title="Ya tiene contrato generado. Ver contratos">
+                                                                <i class="fas fa-file-alt"></i>
+                                                            </a>
+                                                        {% else %}
+                                                            <a href="{% url 'generar_contrato_cliente' proforma.proforma_num %}" 
+                                                            class="btn btn-outline-primary btn-sm" 
+                                                            title="Generar contrato">
+                                                                <i class="fas fa-file-contract"></i>
+                                                            </a>
+                                                        {% endif %}
                                                     {% else %}
                                                         <button class="btn btn-outline-secondary btn-sm" 
                                                                 disabled 
-                                                                title="Proforma vencida (más de 20 días)">
+                                                                title="Proforma vencida (más de 20 días), vuelva a solicitar una nueva proforma">
                                                             <i class="fas fa-file-contract"></i>
                                                         </button>
                                                     {% endif %}

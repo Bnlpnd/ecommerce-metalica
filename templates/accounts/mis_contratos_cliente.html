@@ -135,6 +135,8 @@
                                             <span class="badge bg-success">
                                                 <i class="fas fa-check-circle"></i> Entregado
                                             </span>
+                                        {% elif contrato.estado_pedido == 'anulado' %}
+                                            <span class="badge bg-danger">Anulado</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -171,6 +173,18 @@
                                                         title="PDF no generado">
                                                     <i class="fas fa-file-pdf"></i>
                                                 </button>
+                                            {% endif %}
+
+                                            <!-- Anular contrato-->
+                                            {% if contrato.estado_pedido != 'anulado' %}
+                                                <form method="POST" action="{% url 'anular_contrato_cliente' contrato.contrato_num %}" style="display:inline;">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm"
+                                                            title="Anular contrato"
+                                                            onclick="return confirm('¿Estás seguro de que deseas anular este contrato?');">
+                                                        <i class="fas fa-ban"></i>
+                                                    </button>
+                                                </form>
                                             {% endif %}
                                         </div>
                                     </td>

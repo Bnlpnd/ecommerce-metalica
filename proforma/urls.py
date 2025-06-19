@@ -7,7 +7,6 @@ urlpatterns = [
     path('cotizar/<uuid:product_uid>/', views.solicitar_cotizacion, name='solicitar_cotizacion'),
     path('descargar-pdf/<uuid:proforma_uid>/', views.descargar_pdf, name='descargar_pdf'),
     path('guardar-proforma/', guardar_proforma, name='guardar_proforma'),
-    path('mis-proformas/', mis_proformas, name='mis_proformas'),
     path('formulario/', formulario_proforma, name='formulario_proforma'),
 
     path('bandeja/', views.bandeja_trabajador, name='bandeja_trabajador'),
@@ -21,4 +20,6 @@ urlpatterns = [
     path('estado-proformas/', views.estado_proformas, name='estado_proformas'),
     path('estado-contratos/', views.estado_contratos, name='estado_contratos'),
     path('contrato/<str:contrato_num>/', views.ver_contrato, name='ver_contrato'),
+    path('contratos/anular/<str:contrato_num>/', views.anular_contrato_cliente, name='anular_contrato_cliente'),
+
 ]

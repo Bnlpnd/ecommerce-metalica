@@ -34,6 +34,10 @@ from django.db import models
 from django.core.paginator import Paginator
 from decimal import Decimal
 from datetime import datetime
+from django.db.models import OuterRef, Exists
+from proforma.models import Contrato  # Asegúrate de importar Contrato
+from proforma.models import Proforma
+from proforma.models import ContadorProforma
 
 modelo_arbol = joblib.load(os.path.join(BASE_DIR, 'modelo_arbol.pkl'))
 
@@ -109,9 +113,6 @@ def formulario_proforma(request):
     return render(request, 'product/proforma.html', {
         'productos': productos})
 
-from proforma.models import Proforma
-from proforma.models import ContadorProforma
-
 def generar_numero_proforma_unico():
     contador, _ = ContadorProforma.objects.get_or_create(pk=1)
 
@@ -166,8 +167,8 @@ def guardar_proforma(request):
             p1, p2, p3 = preguntas1[i], preguntas2[i], preguntas3[i]
 
             precio = 0  # reemplazar luego con lógica real
-            precio_instalacion = 50 if instalar else 0
-            precio_total = (precio * cantidad) + precio_instalacion
+            precio_instalacion = 0
+            precio_total = 0
 
             Cotizacion.objects.create(
                 proforma=proforma,
@@ -181,11 +182,11 @@ def guardar_proforma(request):
                 pregunta_2=p2,
                 pregunta_3=p3,
                 precio=precio,
-                precioinstalacion=50 if instalar else 0,
+                precioinstalacion=0,
                 preciototal=precio_total
             )
 
-            total_general += precio_total
+            total_general += precio_total*cantidad
 
         proforma.preciototal = total_general
         proforma.slug = slugify(numero)
@@ -198,11 +199,21 @@ def guardar_proforma(request):
 
         return redirect('mis_proformas')
 
+from django.db.models import OuterRef, Exists, Subquery
 @login_required
 def mis_proformas(request):
-    proformas = Proforma.objects.filter(cliente=request.user).order_by('-fecha')
-    return render(request, 'proforma/mis_proformas.html', {'proformas': proformas})
+    contrato_subquery = Contrato.objects.filter(proforma=OuterRef('pk')).values('contrato_num')[:1]
 
+    proformas = Proforma.objects.filter(cliente=request.user).annotate(
+        tiene_contrato_anotado=Exists(Contrato.objects.filter(proforma=OuterRef('pk'))),
+        contrato_num=Subquery(contrato_subquery)
+    ).order_by('-fecha')
+
+    
+    return render(request, 'proforma/mis_proformas.html', {
+        'proformas': proformas
+    })
+    
 @login_required
 def bandeja_trabajador(request, proforma_num=None):
     proformas = Proforma.objects.filter(estado='pendiente').order_by('fecha')
@@ -574,42 +585,70 @@ def generar_pdf_proforma(request, proforma_num):
     
 @login_required
 def generar_contrato(request, proforma_num):
+    print(f"🔍 Entrando a generar_contrato con proforma_num: {proforma_num}")
+    
     proforma = get_object_or_404(Proforma, proforma_num=proforma_num)
+    print(f"✅ Proforma encontrada: {proforma.proforma_num}")
+
+    # Verificar si YA tiene contrato
+    contrato_existente = Contrato.objects.filter(proforma=proforma).exists()
+    print(f"🧾 ¿Ya tiene contrato? {contrato_existente}")
+    if contrato_existente:
+        messages.warning(request, "Ya existe un contrato generado para esta proforma.")
+        return redirect('mis_contratos_cliente')
 
     # Verificar si la proforma tiene menos de 20 días
-    if (date.today() - proforma.fecha).days > 20:
+    dias_pasados = (date.today() - proforma.fecha).days
+    print(f"📅 Días desde creación: {dias_pasados}")
+    if dias_pasados > 20:
         messages.warning(request, "La proforma ha vencido y no se puede generar un contrato.")
         return redirect('mis_proformas')
 
     cotizaciones = proforma.cotizaciones.prefetch_related('opciones').all()
+    opcion_ids = []
+    for cot in cotizaciones:
+        selected = request.POST.get(f'opcion_cotizacion_{cot.id}')
+        if selected:
+            opcion_ids.append(selected)
+    print(f"📦 Cotizaciones encontradas: {cotizaciones.count()}")
 
     if request.method == 'POST':
         opcion_ids = request.POST.getlist('opcion_cotizacion')
-        acuenta = float(request.POST.get('acuenta'))
+        #acuenta = float(request.POST.get('acuenta'))
+        acuenta = 0
         fecha_entrega = request.POST.get('fechaEntrega')
         detalle_extra = request.POST.get('detalle_extra', '')
 
-        # Calcular total y saldo
+        print(f"📝 Opciones seleccionadas: {opcion_ids}")
+        print(f"💰 A cuenta: {acuenta}")
+        print(f"📆 Fecha entrega: {fecha_entrega}")
+        print(f"🗒️ Detalle extra: {detalle_extra}")
+
+        # Calcular total
         total = 0
         for opcion_id in opcion_ids:
             opcion = OpcionCotizacion.objects.get(id=opcion_id)
+            print(f"➕ Sumando opción {opcion_id} con total {opcion.preciototal}")
             total += float(opcion.preciototal)
 
-        saldo = total - acuenta
-
+#        saldo = total - acuenta
+        saldo = total
+        print(f"💵 Total calculado: {total} | Saldo: {saldo}")
+        
         contrato_num = f"C{str(uuid.uuid4())[:8].upper()}"
+        print(f"🔢 Generando contrato con número: {contrato_num}")
+
         contrato = Contrato.objects.create(
             contrato_num=contrato_num,
             cantidad=len(opcion_ids),
             preciototal=total,
-            acuenta=acuenta,
-            saldo=saldo,
+            acuenta=Decimal(str(acuenta)),
+            saldo=Decimal(str(saldo)), 
             fechaEntrega=fecha_entrega,
             detale_extra=detalle_extra,
             proforma=proforma
         )
 
-        # Relacionar opciones seleccionadas
         for opcion_id in opcion_ids:
             opcion = OpcionCotizacion.objects.get(id=opcion_id)
             OpcionContrato.objects.create(
@@ -617,22 +656,33 @@ def generar_contrato(request, proforma_num):
                 cotizacion=opcion.cotizacion,
                 opcion=opcion
             )
+            print(f"✅ Relacionando Opcion {opcion.id} con Contrato {contrato.contrato_num}")
 
-        # Generar PDF del contrato
-        context = {'contrato': contrato, 'opciones': contrato.opciones_elegidas.all()}
+        # Generar PDF
+        context = {'contrato': contrato, 'opciones': contrato.opciones_elegidas.all(),
+                'abono_sugerido': abono_sugerido}
         pdf_file = render_to_pdf('proforma/pdf_contrato.html', context)
         if pdf_file:
             contrato.pdf.save(f"{contrato.contrato_num}.pdf", ContentFile(pdf_file.read()))
             messages.success(request, "Contrato generado correctamente.")
+            print("📄 PDF generado y guardado.")
         else:
             messages.warning(request, "Contrato creado pero no se pudo generar el PDF.")
+            print("⚠️ No se pudo generar el PDF.")
 
         return redirect('mis_proformas')
 
+    total_estimado = sum(op.opciones.first().preciototal for op in cotizaciones if op.opciones.exists())
+    abono_sugerido = total_estimado * 0.5
+    
     return render(request, 'proforma/seleccionar_opciones_contrato.html', {
         'proforma': proforma,
-        'cotizaciones': cotizaciones
+        'cotizaciones': cotizaciones,
+        'total_estimado': total_estimado,
+        'abono_requerido': abono_sugerido,
+        'fecha_entrega_estimada': date.today() + timedelta(days=10)
     })
+
 
 @login_required
 def estado_proformas(request):
@@ -676,6 +726,27 @@ def estado_proformas(request):
     }
     
     return render(request, 'proforma/estado_proformas.html', context)
+
+
+@login_required
+def anular_contrato_cliente(request, contrato_num):
+    # Primero obtenemos el contrato
+    contrato = get_object_or_404(Contrato, contrato_num=contrato_num)
+
+    # Validar que el contrato pertenece al cliente autenticado
+    if contrato.proforma.cliente != request.user:
+        return HttpResponseForbidden("No tienes permiso para anular este contrato.")
+
+    # Si es POST, cambiar el estado
+    if request.method == 'POST':
+        contrato.estado_pedido = 'anulado'
+        contrato.save()
+        messages.success(request, "Contrato anulado correctamente.")
+        return redirect('mis_contratos_cliente')
+
+    # Puedes redirigir o mostrar una página de confirmación si deseas
+    return redirect('mis_contratos_cliente')
+
 
 @login_required
 def estado_contratos(request):

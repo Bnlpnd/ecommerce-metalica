@@ -17,6 +17,9 @@ class Proforma(BaseModel):
     cliente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='proformas') 
     pdf = models.FileField(upload_to='proformas_pdfs/', blank=True, null=True)
     
+    @property
+    def tiene_contrato(self):
+        return self.contratos.exists()
     
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -58,11 +61,12 @@ class Contrato(BaseModel):
     estado_pedido = models.CharField(max_length=20, default='pendiente', choices=[
         ('pendiente', 'Pendiente'),
         ('en_produccion', 'En Producción'),
-        ('entregado', 'Entregado')
+        ('entregado', 'Entregado'),
+        ('anulado', 'Anulado')
     ])
     detale_extra = models.TextField(max_length=250, default=" ") #se agrega algun detalle extra
-    proforma = models.ForeignKey(Proforma ,  on_delete=models.CASCADE,related_name="contratos", blank=True, null=True)
     pdf = models.FileField(upload_to='contratos_pdfs/', blank=True, null=True)
+    proforma = models.ForeignKey(Proforma, on_delete=models.CASCADE, related_name="contratos", blank=True, null=True)
 
     @property
     def cliente(self):

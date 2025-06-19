@@ -116,7 +116,7 @@
                                     <div class="form-check mb-2 p-3 border rounded">
                                         <input class="form-check-input" 
                                                type="radio" 
-                                               name="opcion_cotizacion" 
+                                               name="opcion_cotizacion"_{{ cotizacion.id }}"
                                                id="opcion_{{ opcion.id }}" 
                                                value="{{ opcion.id }}"
                                                {% if forloop.first %}checked{% endif %}>
@@ -144,6 +144,7 @@
                                     </div>
                                 {% endif %}
                             </div>
+                            <input type="hidden" name="cotizacion_ids" value="{{ cotizacion.id }}">
                         </div>
                     </div>
                 </div>

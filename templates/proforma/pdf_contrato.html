@@ -53,7 +53,7 @@
 
   <div class="totales">
     <p><strong>Total:</strong> S/. {{ contrato.preciototal|floatformat:2 }}</p>
-    <p><strong>A cuenta:</strong> S/. {{ contrato.acuenta|floatformat:2 }}</p>
+    <p><strong>Monto a abonar:</strong> S/. {{ abono_sugerido|floatformat:2 }}</p>
     <p><strong>Saldo:</strong> S/. {{ contrato.saldo|floatformat:2 }}</p>
     <p><strong>Detalle adicional:</strong> {{ contrato.detale_extra|default:"-" }}</p>
   </div>
