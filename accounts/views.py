@@ -413,9 +413,13 @@ def ver_contrato_cliente(request, contrato_num):
     # Verificar que el contrato pertenezca al cliente
     contrato = get_object_or_404(Contrato, contrato_num=contrato_num, proforma__cliente=request.user)
     
+    stats = get_cliente_dashboard_stats(request.user)
+    
     context = {
         'contrato': contrato,
-        'es_cliente': True  # Flag para mostrar vista de solo lectura
+        'es_cliente': True,  # Flag para mostrar vista de solo lectura
+        'tab': 'contratos',
+         **stats,
     }
     
     return render(request, 'accounts/ver_contrato_cliente.html', context)

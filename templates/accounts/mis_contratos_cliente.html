@@ -1,4 +1,4 @@
-{% extends 'accounts/dashboard_base.html' %}
+{% extends 'accounts/dashboard_cliente_base.html' %}
 
 {% block tab %}
 <div class="row">
@@ -101,26 +101,26 @@
                                 {% for contrato in contratos %}
                                 <tr>
                                     <td>
-                                        <strong class="text-primary">{{ contrato.contrato_num }}</strong>
+                                        <strong class="small">{{ contrato.contrato_num }}</strong>
                                     </td>
                                     <td>
-                                        <span class="badge bg-info">{{ contrato.proforma.proforma_num }}</span>
+                                        <span class="small">{{ contrato.proforma.proforma_num }}</span>
                                     </td>
                                     <td>
-                                        <span class="badge bg-secondary">
+                                        <span class="small">
                                             {{ contrato.fecha|date:"d/m/Y" }}
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="badge bg-info">
+                                        <span class="small">
                                             {{ contrato.fechaEntrega|date:"d/m/Y" }}
                                         </span>
                                     </td>
                                     <td>
-                                        <strong class="text-primary">S/. {{ contrato.acuenta|floatformat:2 }}</strong>
+                                        <strong class="text-primary small">S/.{{ contrato.acuenta|floatformat:2 }}</strong>
                                     </td>
                                     <td>
-                                        <strong class="text-success">S/. {{ contrato.preciototal|floatformat:2 }}</strong>
+                                        <strong class="text-success small">S/.{{ contrato.preciototal|floatformat:2 }}</strong>
                                     </td>
                                     <td>
                                         {% if contrato.estado_pedido == 'pendiente' %}
@@ -161,7 +161,7 @@
                                             {% if contrato.pdf %}
                                                 <a href="{{ contrato.pdf.url }}" 
                                                    target="_blank"
-                                                   class="btn btn-outline-success btn-sm" 
+                                                   class="btn btn-outline-danger btn-sm" 
                                                    title="Ver PDF del contrato">
                                                     <i class="fas fa-file-pdf"></i>
                                                 </a>

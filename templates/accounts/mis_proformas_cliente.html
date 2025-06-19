@@ -1,4 +1,4 @@
-{% extends 'accounts/dashboard_base.html' %}
+{% extends 'accounts/dashboard_cliente_base.html' %}
 
 {% block tab %}
 <div class="row">
@@ -59,36 +59,36 @@
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th><i class="fas fa-hashtag"></i> N° Proforma</th>
-                                    <th><i class="fas fa-calendar"></i> Fecha Solicitud</th>
-                                    <th><i class="fas fa-calendar-check"></i> Fecha Atendido</th>
-                                    <th><i class="fas fa-dollar-sign"></i> Precio Total</th>
-                                    <th><i class="fas fa-info-circle"></i> Estado</th>
-                                    <th><i class="fas fa-cogs"></i> Acciones</th>
+                                    <th>N° Proforma</th>
+                                    <th>Fecha Solicitud</th>
+                                    <th>Fecha Atendido</th>
+                                    <th>Precio Total</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for proforma in proformas %}
                                 <tr>
                                     <td>
-                                        <strong class="text-primary">{{ proforma.proforma_num }}</strong>
+                                        <strong class="small">{{ proforma.proforma_num }}</strong>
                                     </td>
                                     <td>
-                                        <span class="badge bg-secondary">
+                                        <span class="small">
                                             {{ proforma.fecha|date:"d/m/Y" }}
                                         </span>
                                     </td>
                                     <td>
                                         {% if proforma.estado == 'atendido' %}
-                                            <span class="badge bg-info">
+                                            <span class="small">
                                                 {{ proforma.updated_at|date:"d/m/Y" }}
                                             </span>
                                         {% else %}
-                                            <span class="text-muted">-</span>
+                                            <span class="text-muted small">-</span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <strong class="text-success">S/. {{ proforma.preciototal|floatformat:2 }}</strong>
+                                        <strong class="text-success small">S/. {{ proforma.preciototal|floatformat:2 }}</strong>
                                     </td>
                                     <td>
                                         {% if proforma.estado == 'pendiente' %}
@@ -109,7 +109,7 @@
                                             {% if proforma.pdf %}
                                                 <a href="{{ proforma.pdf.url }}" 
                                                    target="_blank"
-                                                   class="btn btn-outline-success btn-sm" 
+                                                   class="btn btn-outline-danger btn-sm" 
                                                    title="Ver PDF">
                                                     <i class="fas fa-file-pdf"></i>
                                                 </a>

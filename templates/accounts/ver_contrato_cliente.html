@@ -1,5 +1,6 @@
-{% load static %}
+{% extends 'accounts/dashboard_cliente_base.html' %}
 
+{% block tab %}
 <div class="row">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -7,7 +8,7 @@
             <div>
                 <span class="badge bg-info me-2">Solo Lectura</span>
                 {% if contrato.pdf %}
-                    <a href="{{ contrato.pdf.url }}" target="_blank" class="btn btn-outline-success btn-sm">
+                    <a href="{{ contrato.pdf.url }}" target="_blank" class="btn btn-outline-danger btn-sm">
                         <i class="fas fa-file-pdf"></i> Ver PDF
                     </a>
                 {% endif %}
@@ -18,28 +19,28 @@
             <!-- SECCIÓN 1: DATOS DEL CLIENTE -->
             <div class="col-lg-4 mb-4">
                 <div class="card h-100">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header">
                         <h6 class="mb-0"><i class="fas fa-user-circle"></i> Datos del Cliente</h6>
                     </div>
                     <div class="card-body">
-                        <div class="info-item mb-3">
-                            <strong><i class="fas fa-user text-primary"></i> Nombre:</strong><br>
+                        <div class=" mb-3">
+                            <strong>Nombre:</strong><br>
                             {{ contrato.cliente.get_full_name|default:contrato.cliente.username }}
                         </div>
-                        <div class="info-item mb-3">
-                            <strong><i class="fas fa-map-marker-alt text-danger"></i> Dirección:</strong><br>
+                        <div class=" mb-3">
+                            <strong>Dirección:</strong><br>
                             {{ contrato.cliente.profile.direccion|default:"No especificada" }}
                         </div>
-                        <div class="info-item mb-3">
-                            <strong><i class="fas fa-city text-info"></i> Distrito:</strong><br>
+                        <div class=" mb-3">
+                            <strong>Distrito:</strong><br>
                             {{ contrato.cliente.profile.distrito|default:"No especificado" }}
                         </div>
-                        <div class="info-item mb-3">
-                            <strong><i class="fas fa-id-card text-warning"></i> DNI:</strong><br>
+                        <div class=" mb-3">
+                            <strong>DNI:</strong><br>
                             {{ contrato.cliente.profile.dni|default:"No especificado" }}
                         </div>
-                        <div class="info-item">
-                            <strong><i class="fas fa-envelope text-success"></i> Email:</strong><br>
+                        <div class="">
+                            <strong>Email:</strong><br>
                             {{ contrato.cliente.email }}
                         </div>
                     </div>
@@ -49,40 +50,40 @@
             <!-- SECCIÓN 2: DETALLES DEL PEDIDO -->
             <div class="col-lg-4 mb-4">
                 <div class="card h-100">
-                    <div class="card-header bg-success text-white">
+                    <div class="card-header">
                         <h6 class="mb-0"><i class="fas fa-clipboard-list"></i> Detalles del Pedido</h6>
                     </div>
                     <div class="card-body">
-                        <div class="info-item mb-3">
-                            <strong><i class="fas fa-hashtag text-primary"></i> N° Proforma:</strong><br>
+                        <div class=" mb-3">
+                            <strong> N° Proforma:</strong><br>
                             {{ contrato.proforma.proforma_num }}
                         </div>
-                        <div class="info-item mb-3">
-                            <strong><i class="fas fa-calendar text-primary"></i> Fecha Emisión:</strong><br>
+                        <div class=" mb-3">
+                            <strong> Fecha Emisión:</strong><br>
                             {{ contrato.fecha|date:"d/m/Y" }}
                         </div>
-                        <div class="info-item mb-3">
-                            <strong><i class="fas fa-calendar-check text-success"></i> F. Entrega:</strong><br>
+                        <div class=" mb-3">
+                            <strong> F. Entrega:</strong><br>
                             {{ contrato.fechaEntrega|date:"d/m/Y" }}
                         </div>
-                        <div class="info-item mb-3">
-                            <strong><i class="fas fa-tasks text-info"></i> Estado:</strong><br>
+                        <div class=" mb-3">
+                            <strong> Estado:</strong><br>
                             {% if contrato.estado_pedido == 'pendiente' %}
                                 <span class="badge bg-warning text-dark">
-                                    <i class="fas fa-clock"></i> Pendiente
+                                     Pendiente
                                 </span>
                             {% elif contrato.estado_pedido == 'en_produccion' %}
                                 <span class="badge bg-info">
-                                    <i class="fas fa-cogs"></i> En Producción
+                                     En Producción
                                 </span>
                             {% else %}
                                 <span class="badge bg-success">
-                                    <i class="fas fa-check-circle"></i> Entregado
+                                     Entregado
                                 </span>
                             {% endif %}
                         </div>
                         {% if contrato.detale_extra %}
-                            <div class="info-item">
+                            <div class="">
                                 <strong><i class="fas fa-comment text-secondary"></i> Detalles:</strong><br>
                                 <small class="text-muted">{{ contrato.detale_extra }}</small>
                             </div>
@@ -94,34 +95,34 @@
             <!-- SECCIÓN 3: INFORMACIÓN FINANCIERA -->
             <div class="col-lg-4 mb-4">
                 <div class="card h-100">
-                    <div class="card-header bg-warning text-dark">
+                    <div class="card-header">
                         <h6 class="mb-0"><i class="fas fa-dollar-sign"></i> Información Financiera</h6>
                     </div>
                     <div class="card-body">
-                        <div class="info-item mb-3">
-                            <strong><i class="fas fa-dollar-sign text-success"></i> Precio Total:</strong><br>
+                        <div class=" mb-3">
+                            <strong>Precio Total:</strong><br>
                             <span class="text-success fw-bold fs-5">S/. {{ contrato.preciototal|floatformat:2 }}</span>
                         </div>
-                        <div class="info-item mb-3">
-                            <strong><i class="fas fa-hand-holding-usd text-primary"></i> A Cuenta:</strong><br>
+                        <div class=" mb-3">
+                            <strong>A Cuenta:</strong><br>
                             <span class="text-primary fw-bold fs-5">S/. {{ contrato.acuenta|floatformat:2 }}</span>
                         </div>
-                        <div class="info-item mb-3">
-                            <strong><i class="fas fa-balance-scale text-danger"></i> Saldo Restante:</strong><br>
+                        <div class=" mb-3">
+                            <strong>Saldo Restante:</strong><br>
                             {% if contrato.saldo == 0 %}
                                 <span class="text-success fw-bold fs-5">S/. 0.00</span>
                             {% else %}
                                 <span class="text-danger fw-bold fs-5">S/. {{ contrato.saldo|floatformat:2 }}</span>
                             {% endif %}
                         </div>
-                        <div class="info-item">
-                            <strong><i class="fas fa-money-bill-wave text-warning"></i> Estado de Deuda:</strong><br>
+                        <div class="">
+                            <strong>Estado de Deuda:</strong><br>
                             {% if contrato.estado_deuda == 'pagado' %}
-                                <span class="badge bg-success fs-6">
+                                <span class="badge bg-success">
                                     <i class="fas fa-check-circle"></i> Pagado
                                 </span>
                             {% else %}
-                                <span class="badge bg-warning text-dark fs-6">
+                                <span class="badge bg-warning text-dark">
                                     <i class="fas fa-exclamation-triangle"></i> Pendiente de Pago
                                 </span>
                             {% endif %}
@@ -135,7 +136,7 @@
         <div class="row mt-4">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header bg-info text-white">
+                    <div class="card-header">
                         <h6 class="mb-0"><i class="fas fa-door-closed"></i> Productos del Contrato</h6>
                     </div>
                     <div class="card-body">
@@ -144,7 +145,7 @@
                             <div class="card-header bg-light">
                                 <div class="row align-items-center">
                                     <div class="col-md-8">
-                                        <h6 class="mb-0 text-primary">
+                                        <h6 class="mb-0">
                                             <i class="fas fa-cube"></i> 
                                             {{ cotizacion.producto.product.product_name }}
                                         </h6>
@@ -179,11 +180,11 @@
                                     <div class="col-md-9">
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <p><strong><i class="fas fa-ruler text-primary"></i> Medidas:</strong> 
+                                                <p><strong><i class="fas fa-ruler"></i> Medidas:</strong> 
                                                    {{ cotizacion.alto }} × {{ cotizacion.ancho }} cm</p>
-                                                <p><strong><i class="fas fa-palette text-warning"></i> Color:</strong> 
+                                                <p><strong><i class="fas fa-palette"></i> Color:</strong> 
                                                    {{ cotizacion.color }}</p>
-                                                <p><strong><i class="fas fa-key text-info"></i> Chapa:</strong> 
+                                                <p><strong><i class="fas fa-key"></i> Chapa:</strong> 
                                                    {{ cotizacion.chapa }}</p>
                                             </div>
                                             <div class="col-md-6">
@@ -212,8 +213,8 @@
                         <div class="mt-4">
                             <h6><i class="fas fa-check-circle text-success"></i> Opciones Contratadas</h6>
                             <div class="table-responsive">
-                                <table class="table table-striped">
-                                    <thead class="table-dark">
+                                <table class="table">
+                                    <thead class="table-light">
                                         <tr>
                                             <th>Opción</th>
                                             <th>Descripción</th>
@@ -247,9 +248,9 @@
         <!-- Botón de regreso -->
         <div class="row mt-4">
             <div class="col-12 text-center">
-                <button onclick="history.back()" class="btn btn-outline-secondary">
+                <a href="{% url 'mis_contratos_cliente' %}" class="btn btn-outline-secondary">
                     <i class="fas fa-arrow-left"></i> Volver
-                </button>
+                </a>
             </div>
         </div>
     </div>
@@ -263,3 +264,4 @@
     border-radius: 0 5px 5px 0;
 }
 </style> 
+{% endblock %} 

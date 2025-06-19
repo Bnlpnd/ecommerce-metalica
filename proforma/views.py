@@ -189,15 +189,37 @@ def mis_proformas(request):
     proformas = Proforma.objects.filter(cliente=request.user).order_by('-fecha')
     return render(request, 'proforma/mis_proformas.html', {'proformas': proformas})
 
+def get_trabajador_dashboard_stats(user):
+    return {
+        'total_proformas': Proforma.objects.count(),
+        'total_contratos': Contrato.objects.count(),
+        'proformas_pendientes': Proforma.objects.filter(estado='pendiente').count(),
+        'contratos_pendientes': Contrato.objects.filter(estado_pedido='pendiente').count(),
+    }
+
+@login_required
+def dashboard_trabajador(request):
+    """Dashboard principal para clientes"""
+    # Verificar que el usuario sea cliente
+    if not hasattr(request.user, 'profile') or request.user.profile.rol != 'trabajador':
+        return HttpResponseForbidden("Acceso denegado. Esta sección es solo para trabajadores.")
+    
+    # Estadísticas básicas para mostrar en el dashboard
+    stats = get_trabajador_dashboard_stats(request.user)
+    return render(request, 'accounts/dashboard_trabajador.html', stats)
+
 @login_required
 def bandeja_trabajador(request, proforma_num=None):
     proformas = Proforma.objects.filter(estado='pendiente').order_by('fecha')
     print("🧾 Proformas cargadas:", proformas)
+    
+    stats = get_trabajador_dashboard_stats(request.user)
+
     return render(request, 'proforma/bandeja.html', {'proformas': proformas,
-        'proforma_seleccionada': proforma_num})
+        'proforma_seleccionada': proforma_num, 'tab': 'bandeja',**stats})
 
 
-def ver_proforma(request, proforma_num):
+def ver_proforma(request, proforma_num, without_layout=None):
     proforma = get_object_or_404(Proforma, proforma_num=proforma_num)
     cotizaciones = Cotizacion.objects.filter(proforma=proforma)
     materiales = Material.objects.all()
@@ -213,11 +235,19 @@ def ver_proforma(request, proforma_num):
             return redirect('ver_proforma', proforma_num=proforma_num)
         except:
             messages.error(request, "Error al eliminar las opciones.")
+
+    view = 'proforma/ver_proforma.html'
+    if without_layout:
+        view = 'proforma/ver_proforma_bandeja.html'
     
-    return render(request, 'proforma/ver_proforma.html', {
+    stats = get_trabajador_dashboard_stats(request.user)
+
+    return render(request, view, {
         'proforma': proforma,
         'cotizaciones': cotizaciones,
-        'materiales': materiales
+        'materiales': materiales,
+        'tab': 'proformas',
+        **stats
     })
 
 @login_required
@@ -653,12 +683,16 @@ def estado_proformas(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    stats = get_trabajador_dashboard_stats(request.user)
+
     context = {
         'proformas': page_obj,
         'nombre_cliente': nombre_cliente,
         'numero_proforma': numero_proforma,
         'estado_filtro': estado_filtro,
-        'total_proformas': proformas.count(),
+        'total_proformas': proformas.count(), 
+        'tab': 'proformas',
+        **stats
     }
     
     return render(request, 'proforma/estado_proformas.html', context)
@@ -706,6 +740,8 @@ def estado_contratos(request):
     paginator = Paginator(contratos, 20)  # 20 contratos por página
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
+    stats = get_trabajador_dashboard_stats(request.user)
     
     context = {
         'contratos': page_obj,
@@ -715,6 +751,8 @@ def estado_contratos(request):
         'estado_pedido': estado_pedido,
         'estado_deuda': estado_deuda,
         'total_contratos': contratos.count(),
+        'tab': 'contratos',
+        **stats
     }
     
     return render(request, 'proforma/estado_contratos.html', context)
@@ -765,6 +803,8 @@ def ver_contrato(request, contrato_num):
 
         except Exception as e:
             messages.error(request, f"Error al actualizar el contrato: {str(e)}")
+    
+    stats = get_trabajador_dashboard_stats(request.user)
 
     context = {
         'contrato': contrato,
@@ -772,7 +812,9 @@ def ver_contrato(request, contrato_num):
             ('pendiente', 'Pendiente'),
             ('en_produccion', 'En Producción'),
             ('entregado', 'Entregado')
-        ]
+        ],
+        'tab': 'contratos',
+        **stats,
     }
     return render(request, 'proforma/ver_contrato.html', context)
 
