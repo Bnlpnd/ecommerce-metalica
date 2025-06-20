@@ -8,7 +8,7 @@
     <div class="card-body">
       <h4 class="card-title mb-4 h3 text-center">Iniciar Sesión</h4>
       <form action="{% url 'login' %}" method="POST">
-        {% csrf_token %} {% include "includes/alerts.html" %}
+        {% csrf_token %}
 
         <div class="form-floating">
           <input
