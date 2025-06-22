@@ -1,30 +1,21 @@
-from cmath import log
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate , login as auth_login, logout
 from django.http import HttpResponseRedirect,HttpResponse
-from django.http import JsonResponse
-# Create your views here.
-from .models import Profile, Account
-from base.emails  import send_account_activation_email, send_password_reset_email
+from django.core.paginator import Paginator
+from django.db import models as django_models
+from django.template.loader import render_to_string
+from django.http import JsonResponse, HttpResponseForbidden
+from django.views.decorators.http import require_http_methods 
 from base.tokens import account_activation_token
 from datetime import date, timedelta
 from decimal import Decimal
-from django.core.paginator import Paginator
-from django.db import models as django_models
-from django.http import HttpResponseForbidden
+from .models import Profile, Account
 from .forms import ClienteProfileForm
 from proforma.models import Proforma, Contrato
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
-from django.template.loader import render_to_string
-from django.http import JsonResponse, HttpResponseForbidden
-from django.views.decorators.http import require_http_methods
-from django.contrib.auth.decorators import login_required
-from .forms import ClienteProfileForm
-
+from base.emails  import send_account_activation_email, send_password_reset_email
 
 def login_view(request):
     if request.method == 'POST':
@@ -210,7 +201,7 @@ def forgot_password(request):
         return redirect('login')
 
     return render(request, 'accounts/forgot_password.html')
-
+ 
 def get_cliente_dashboard_stats(user):
     return {
         'total_proformas': Proforma.objects.filter(cliente=user).count(),
@@ -229,58 +220,6 @@ def dashboard_cliente(request):
     # Estadísticas básicas para mostrar en el dashboard
     stats = get_cliente_dashboard_stats(request.user)
     return render(request, 'accounts/dashboard_cliente.html', stats)
-
-@login_required
-def ppperfil_cliente(request):
-    print(f"🧭 Ruta perfil_cliente activa - Método: {request.method}")
-
-    print(f"📥 Método usado: {request.method}")
-    if not hasattr(request.user, 'profile') or request.user.profile.rol != 'cliente':
-        return HttpResponseForbidden("Acceso denegado.")
-    
-    profile = request.user.profile
-    
-    if request.method == 'POST':
-        print("🔍 POST recibido - datos del formulario:")
-        print("📥 request.POST:", request.POST)
-        print("📥 request.FILES:", request.FILES)
-        
-        # Imprimir todos los datos del formulario
-        for key, value in request.POST.items():
-            print(f"   {key}: {value}")
-            
-        form = ClienteProfileForm(request.POST, request.FILES, user=request.user, profile=profile)
-
-        if form.is_valid():
-            print("✅ Formulario válido - guardando cambios...")
-            try:
-                # Usar el método save del formulario
-                form.save(request.user, profile)
-                print("💾 Guardado exitoso")
-                print("👤 Nuevo nombre:", request.user.first_name)
-                print("📌 Nueva dirección:", profile.direccion)
-                
-                messages.success(request, 'Perfilxx actualizado correctamente.')
-                return redirect('perfil_cliente')
-            except Exception as e:
-                print(f"❌ Error guardando: {e}")
-                messages.error(request, f'Error al guardar el perfil: {str(e)}')
-        else:
-            print("❌ Formulario inválido - errores:")
-            for field, errors in form.errors.items():
-                print(f"   {field}: {errors}")
-            
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'success': False, 'errors': form.errors})
-    else:
-        form = ClienteProfileForm(user=request.user, profile=profile)
-    
-    context = {
-        'form': form,
-        'profile': profile
-    }
-    print("📤 Contexto enviado a la plantilla:", context)
-    return render(request, 'accounts/perfil_cliente.html', context)
 
 @login_required
 @require_http_methods(["GET", "POST"])

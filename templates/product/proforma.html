@@ -2,6 +2,31 @@
 <div class="container mt-4">
   <h2 class="mb-4">Proforma</h2>
 
+  {% if request.user.profile %}
+  <div class="alert alert-warning d-flex justify-content-between align-items-center flex-wrap">
+    <div>
+      <strong>Información del cliente:</strong><br>
+      <ul class="mb-0">
+        <li><strong>Nombre:</strong> {{ request.user.get_full_name }}</li>
+        <li><strong>DNI:</strong> {{ request.user.profile.dni|default:"No registrado" }}</li>
+        <li><strong>Teléfono:</strong> {{ request.user.profile.phone_number|default:"No registrado" }}</li>
+        <li><strong>Dirección:</strong> {{ request.user.profile.direccion|default:"No registrado" }}</li>
+        <li><strong>Referencia:</strong> {{ request.user.profile.referencia|default:"No registrado" }}</li>
+        <li><strong>Distrito:</strong> {{ request.user.profile.distrito|default:"No registrado" }}</li>
+      </ul>
+    </div>
+    <div class="text-end mt-2 mt-md-0">
+      {% if not request.user.profile.dni or not request.user.profile.direccion or not request.user.profile.phone_number or not request.user.profile.referencia or not  request.user.profile.distrito  %}
+        <a href="{% url 'perfil_cliente' %}" class="btn btn-danger btn-sm mb-1">Completar perfil</a>
+      {% else %}
+        <span class="badge bg-success p-2 mb-1">Perfil completo</span><br>
+        <a href="{% url 'perfil_cliente' %}" class="btn btn-outline-primary btn-sm mt-1">Editar perfil</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+
   <!-- FORMULARIO -->
   <form method="POST" action="{% url 'guardar_proforma' %}">
     {% csrf_token %}
@@ -53,11 +78,11 @@
               <img src="" class="imagen-modelo" width="70" style="display: none; border-radius: 5px" />
             </td>
             <td>
-              <input type="text" name="alto[]" placeholder="Alto" class="form-control form-control-sm mb-1" />
-              <input type="text" name="ancho[]" placeholder="Ancho" class="form-control form-control-sm" />
+              <input type="number" name="alto[]" placeholder="Alto" class="form-control form-control-sm mb-1" maxlength="3" />
+              <input type="number" name="ancho[]" placeholder="Ancho" class="form-control form-control-sm" maxlength="4"/>
             </td>
             <td>
-              <input type="text" name="color[]" class="form-control form-control-sm" placeholder="Ej. Negro mate" />
+              <input type="text" name="color[]" class="form-control form-control-sm" placeholder="Ej. Negro mate" maxlength="30"/>
             </td>
             <td class="text-center">
               <button class="btn btn-primary btn-sm" type="button" onclick="abrirModal(this)">Detalle</button>
@@ -83,15 +108,15 @@
 <div id="modalDetalle" style="display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); background: white; padding: 20px; border-radius: 10px; border: 1px solid #ccc; z-index: 999;">
   <h5 class="mb-3">Preguntas adicionales</h5>
   <div class="mb-2">
-    <label>¿Dónde se instalará la puerta?</label>
+    <label>Deme una breve descripción de dónde será instalado el modelo que ha seleccionado.</label>
     <input type="text" class="form-control form-control-sm" id="p1" />
   </div>
   <div class="mb-2">
-    <label>¿Requiere pintura especial?</label>
+    <label>Si su modelo incluye chapa, imagine que se encuentra frente a su puerta y describa en sus palabras para qué lado abre la puerta.</label>
     <input type="text" class="form-control form-control-sm" id="p2" />
   </div>
   <div class="mb-3">
-    <label>¿Tiene alguna medida especial?</label>
+    <label>¿Desea agregar el servicio de instalado? De ser así, verificar que la dirección de la instalación sea la que ha registrado o de ser otra dirección, escribirla en el recuadro junto a una referencia.</label>
     <input type="text" class="form-control form-control-sm" id="p3" />
   </div>
   <div class="text-end">

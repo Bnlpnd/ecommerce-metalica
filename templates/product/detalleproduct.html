@@ -30,9 +30,17 @@
 
       <!-- Información -->
       <div class="col-md-6">
-        <h5>Listado de materiales:</h5>
+        <h5>Descripción:</h5>
         <ul>
-          <li>{{ modelo.description }}</li>
+          <li>{{ modelo.product.description|linebreaks }}</li>
+        </ul>
+        <h5>Ventajas:</h5>
+        <ul>
+          <li>{{ modelo.product.detalle|linebreaks }}</li>
+        </ul>
+        <h5>Detalle del modelo:</h5>
+        <ul>
+          <li>{{ modelo.description|linebreaks }}</li>
         </ul>
 
         <!-- Botones -->

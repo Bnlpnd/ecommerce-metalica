@@ -1,44 +1,27 @@
 from django.http import HttpResponse, HttpResponseForbidden, FileResponse,JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import *
-from .models import *
-from products.models import Product, ProductMaterial, Material
 from django.contrib import messages
-from django.conf import settings
-BASE_DIR = settings.BASE_DIR
-import joblib
-import os
-from django.utils import timezone
-from decimal import Decimal
-from django.utils.timezone import now
-from datetime import timedelta
-from reportlab.pdfgen import canvas
-from io import BytesIO
-from django.core.files.base import ContentFile
-import pandas as pd
 from django.utils.text import slugify
-from datetime import timedelta, date
-from django.views.decorators.csrf import csrf_exempt #no valida el token para hacer pruebas
-from django.urls import reverse
-from django.template.loader import render_to_string,  get_template
-from .utils.pdf_utils import render_to_pdf
-import tempfile
-from django.http import HttpResponse
-from xhtml2pdf import pisa
-from django.core.mail import EmailMessage
-from django.conf import settings
-from django.core.files.storage import default_storage
-import uuid
+from django.db.models import OuterRef, Exists,Subquery
 from django.db import models
 from django.core.paginator import Paginator
+from django.core.mail import EmailMessage
+from django.conf import settings
+from django.core.files.base import ContentFile
+from reportlab.pdfgen import canvas
 from decimal import Decimal
-from datetime import datetime
-from django.db.models import OuterRef, Exists
-from proforma.models import Contrato  # Asegúrate de importar Contrato
-from proforma.models import Proforma
-from proforma.models import ContadorProforma
-
+from datetime import datetime,timedelta, date
+import pandas as pd
+from .utils.pdf_utils import render_to_pdf
+import joblib
+import os
+from io import BytesIO
+import uuid
+BASE_DIR = settings.BASE_DIR
+from proforma.models import Contrato,Proforma,ContadorProforma,Product, ProductMaterial, Material
+from .forms import *
+from .models import *
 modelo_arbol = joblib.load(os.path.join(BASE_DIR, 'modelo_arbol.pkl'))
 
 @login_required
@@ -122,10 +105,6 @@ def generar_numero_proforma_unico():
         if not Proforma.objects.filter(proforma_num=numero).exists():
             contador.save()
             return numero
-
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect
-from django.http import HttpResponseForbidden
 
 @login_required
 def redireccionar_mis_proformas(request):
@@ -211,7 +190,6 @@ def guardar_proforma(request):
 
         return redireccionar_mis_proformas(request)
 
-from django.db.models import OuterRef, Exists, Subquery
 @login_required
 def mis_proformas(request):
     contrato_subquery = Contrato.objects.filter(proforma=OuterRef('pk')).values('contrato_num')[:1]
@@ -254,7 +232,6 @@ def bandeja_trabajador(request, proforma_num=None):
 
     return render(request, 'proforma/bandeja.html', {'proformas': proformas,
         'proforma_seleccionada': proforma_num, 'tab': 'bandeja',**stats})
-
 
 def ver_proforma(request, proforma_num, without_layout=None):
     proforma = get_object_or_404(Proforma, proforma_num=proforma_num)
@@ -332,13 +309,16 @@ def predecir_precio(request):
             print(f"   - Producto: '{producto_nombre}' → {producto_cod}")
             print(f"   - Material: '{material_nombre}' → {material_cod}")
 
-            datos = pd.DataFrame([[alto, ancho, producto_cod, material_cod]],
-                                 columns=['alto', 'ancho', 'producto', 'material'])
+            datos = pd.DataFrame([[producto_cod, material_cod, alto, ancho ]],
+                                 columns=['producto', 'material','alto', 'ancho'])
 
             modelo_path = os.path.join(BASE_DIR, 'modelo_arbol.pkl')
             if os.path.exists(modelo_path):
                 print("🧠 Cargando modelo de Machine Learning...")
                 modelo = joblib.load(modelo_path)
+
+                print("🧠 Modelo espera:", modelo.feature_names_in_)
+                print("🧪 Columnas de entrada al modelo:", datos.columns.tolist())
                 pred = modelo.predict(datos)[0]
                 precio_predicho = round(pred, 2)
                 print(f"💡 PREDICCIÓN COMPLETADA: S/.{precio_predicho}")
@@ -422,7 +402,7 @@ def guardar_opciones_cotizacion(request):
                 descripcion = descripciones[i].strip() if i < len(descripciones) and descripciones[i] else ""
                 
                 # Solo guarda si tiene al menos título o algún precio
-                if titulo or pt > 0 or pr > 0 or pi > 0 or descripcion:
+                if pt > 0:
                     # Obtener y limpiar precio predicho
                     precio_pred = 0
                     if i < len(precios_predicho) and precios_predicho[i]:
@@ -725,7 +705,6 @@ def generar_contrato(request, proforma_num):
         'fecha_entrega_estimada': date.today() + timedelta(days=10)
     })
 
-
 @login_required
 def estado_proformas(request):
     # Verificar que el usuario sea trabajador
@@ -773,7 +752,6 @@ def estado_proformas(request):
     
     return render(request, 'proforma/estado_proformas.html', context)
 
-
 @login_required
 def anular_contrato_cliente(request, contrato_num):
     # Primero obtenemos el contrato
@@ -792,7 +770,6 @@ def anular_contrato_cliente(request, contrato_num):
 
     # Puedes redirigir o mostrar una página de confirmación si deseas
     return redirect('mis_contratos_cliente')
-
 
 @login_required
 def estado_contratos(request):

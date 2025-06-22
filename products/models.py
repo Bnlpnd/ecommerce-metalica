@@ -22,7 +22,7 @@ class Tipo(BaseModel):
 class Product(BaseModel):
     product_name = models.CharField(max_length=100)
     description = models.TextField(max_length=250, default="")
-    detalle = models.TextField(max_length=250, default="Medidas: Tiempo de elaboración:")
+    detalle = models.TextField(max_length=250, default="Medidas: Tiempo de elaboración: ")
     tipo = models.ForeignKey(Tipo ,  on_delete=models.CASCADE,related_name="tipos", null=True, blank=True)
 
     def save(self , *args , **kwargs):

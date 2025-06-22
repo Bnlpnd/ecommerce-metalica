@@ -55,7 +55,7 @@
                   {{ item.modelo.productmaterial_name }}
                 </h5>
                 <p class="card-text flex-grow-1 text-muted">
-                  {{ item.modelo.description }}
+                  {{ item.modelo.product.description }}
                 </p>
                 <a
                   href="{% url 'detalle_producto' item.modelo.uid %}"
