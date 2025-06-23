@@ -188,6 +188,7 @@ def guardar_proforma(request):
             messages.warning(request, "No se pudo guardar ninguna cotización.")
             return redirect('formulario_proforma')
 
+        messages.success(request, "Proforma creada exitosamente")
         return redireccionar_mis_proformas(request)
 
 @login_required

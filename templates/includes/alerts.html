@@ -1,14 +1,22 @@
+<!-- Mostrar mensajes -->
 {% if messages %}
-
-<div id="message" class="container">
-  {% for message in messages %}
-
-  <div class="alert alert-{{ message.tags }}" role="alert">
-    {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %} Importante: {%endif%}
-    {{ message }}
+<div class="container mb-2">
+  <div class="row">
+    <div class="col-12">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-0" role="alert">
+          {% if message.tags == 'success' %}
+            <i class="fas fa-check-circle"></i>
+          {% elif message.tags == 'error' %}
+            <i class="fas fa-exclamation-triangle"></i>
+          {% else %}
+            <i class="fas fa-info-circle"></i>
+          {% endif %}
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    </div>
   </div>
-
-  {% endfor %}
-</div>
-
+  </div>
 {% endif %}

@@ -18,7 +18,7 @@
     {% with opciones_con_precio=c.opciones.all %}
     {% if opciones_con_precio %}
       <h3>Producto: {{ c.producto.product.product_name }}</h3>
-      <p>Cantidad: {{ c.cantidad }} | Alto: {{ c.alto }} cm | Ancho: {{ c.ancho }} cm</p>
+      <strong><p>Cantidad: {{ c.cantidad }}</strong> | Alto: {{ c.alto }} cm | Ancho: {{ c.ancho }} cm</p>
       <p>Color: {{ c.color }} | <strong>Chapa:</strong> {{ c.chapa }}</p>
       <p><strong>Preguntas:</strong><br>
         1. {{ c.pregunta_1 }}<br>
@@ -31,7 +31,7 @@
           <th>Título</th>
           <th>Materiales</th>
           <th>Precio predicción</th>
-          <th>Precio real</th>
+          <th>Precio unidad</th>
           <th>Instalación</th>
           <th>Total</th>
         </tr>

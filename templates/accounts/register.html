@@ -6,7 +6,7 @@
     <div class="card-body">
       <h4 class="card-title mb-4 h3 text-center">Registrar</h4>
       <form action="{% url 'register' %}" method="POST">
-        {% csrf_token %} {% include "includes/alerts.html" %}
+        {% csrf_token %}
         <!--
         <div class="form-group">
           <input

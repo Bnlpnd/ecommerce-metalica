@@ -385,13 +385,16 @@ def generar_contrato_cliente(request, proforma_num):
         from django.core.files.base import ContentFile
         import uuid
         
-        opcion_ids = request.POST.getlist('opcion_cotizacion')
+        opcion_ids = []
         detalle_extra = request.POST.get('detalle_extra', '')
 
-        if not opcion_ids:
-            messages.error(request, "Debe seleccionar al menos una opción.")
-            return redirect('generar_contrato_cliente', proforma_num=proforma_num)
-
+        for cotizacion in cotizaciones:
+            opcion_id = request.POST.get(f"opcion_cotizacion_{cotizacion.id}")
+            if not opcion_id:
+                messages.error(request, f"Debe seleccionar una opción para el producto '{cotizacion.modelo.model_name}'.")
+                return redirect('generar_contrato_cliente', proforma_num=proforma_num)
+            opcion_ids.append(opcion_id)
+            
         # Calcular total
         total = 0
         for opcion_id in opcion_ids:
@@ -400,7 +403,7 @@ def generar_contrato_cliente(request, proforma_num):
 
         # Calcular 50% de abono
         acuenta = total * 0.5
-        saldo = total - acuenta
+        saldo = total
         
         # Fecha de entrega: 7 días hábiles (aproximadamente 10 días calendario)
         fecha_entrega = date.today() + timedelta(days=10)

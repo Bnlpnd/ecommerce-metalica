@@ -188,11 +188,23 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    const mensaje = document.getElementById('mensaje-exito');
-                    if (mensaje) {
-                        mensaje.classList.remove('d-none');
-                        setTimeout(() => mensaje.classList.add('d-none'), 3000);
-                    }
+                    const body = document.body;
+                    const newDiv = document.createElement('div');
+                    newDiv.id = 'mensaje-container';
+                    newDiv.className = 'container';
+                    newDiv.innerHTML = `
+                    <div class="row">
+                        <div class="col-12">
+                            <div id="mensaje" class="alert alert-success alert-dismissible fade show mb-0" role="alert">
+                                <i class="fas fa-check-circle"></i>
+                                Contrato actualizado correctamente.
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        </div>
+                    </div>`;
+                    body.insertBefore(newDiv, body.children[1]);
+                    window.scrollTo(0,0);
+                    setTimeout(() => newDiv.remove(), 3000);
 
                     // Reemplazar contenido del perfil actualizado
                     document.getElementById('perfil-container').innerHTML = data.html;
