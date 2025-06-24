@@ -26,6 +26,7 @@ class Product(BaseModel):
     tipo = models.ForeignKey(Tipo ,  on_delete=models.CASCADE,related_name="tipos", null=True, blank=True)
 
     def save(self , *args , **kwargs):
+        generated_slug = slugify(self.product_name)[:50] 
         self.slug = slugify(self.product_name)
         super(Product ,self).save(*args , **kwargs)
 

@@ -607,7 +607,7 @@ def generar_pdf_proforma(request, proforma_num):
         return HttpResponse("❌ Error generando PDF", status=500)
     
 @login_required
-def generar_contrato(request, proforma_num):
+def generar_contratox(request, proforma_num):
     print(f"🔍 Entrando a generar_contrato con proforma_num: {proforma_num}")
     
     proforma = get_object_or_404(Proforma, proforma_num=proforma_num)
@@ -656,6 +656,7 @@ def generar_contrato(request, proforma_num):
 
 #        saldo = total - acuenta
         saldo = total
+        abono_sugerido = total * 0.5
         print(f"💵 Total calculado: {total} | Saldo: {saldo}")
         
         contrato_num = f"C{str(uuid.uuid4())[:8].upper()}"
@@ -664,9 +665,7 @@ def generar_contrato(request, proforma_num):
         contrato = Contrato.objects.create(
             contrato_num=contrato_num,
             cantidad=len(opcion_ids),
-            preciototal=total,
-            acuenta=Decimal(str(acuenta)),
-            saldo=Decimal(str(saldo)), 
+            preciototal=Decimal(str(total)),  
             fechaEntrega=fecha_entrega,
             detale_extra=detalle_extra,
             proforma=proforma
@@ -682,8 +681,10 @@ def generar_contrato(request, proforma_num):
             print(f"✅ Relacionando Opcion {opcion.id} con Contrato {contrato.contrato_num}")
 
         # Generar PDF
-        context = {'contrato': contrato, 'opciones': contrato.opciones_elegidas.all(),
-                'abono_sugerido': abono_sugerido}
+        context = {
+            'contrato': contrato, 
+            'opciones': contrato.opciones_elegidas.all(),      'abono_requerido': abono_sugerido
+            }
         pdf_file = render_to_pdf('proforma/pdf_contrato.html', context)
         if pdf_file:
             contrato.pdf.save(f"{contrato.contrato_num}.pdf", ContentFile(pdf_file.read()))

@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import *
 from . import views
+from accounts.views import *
 
 urlpatterns = [
     path('ping/', views.ping, name='proforma_ping'),
@@ -19,7 +20,7 @@ urlpatterns = [
     path('guardar-opciones/', views.guardar_opciones_cotizacion, name='guardar_opciones_cotizacion'),
     path('predecir-precio/', views.predecir_precio, name='predecir_precio'),
     path('proforma/pdf/<str:proforma_num>/', views.generar_pdf_proforma, name='generar_pdf_proforma'),
-    path('proforma/<str:proforma_num>/generar-contrato/', views.generar_contrato, name='generar_contrato'),
+    path('proforma/<str:proforma_num>/generar-contrato/', generar_contrato_cliente, name='generar_contrato'),
     path('estado-proformas/', views.estado_proformas, name='estado_proformas'),
     path('estado-contratos/', views.estado_contratos, name='estado_contratos'),
     path('contrato/<str:contrato_num>/', views.ver_contrato, name='ver_contrato'),

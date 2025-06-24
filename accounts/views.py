@@ -403,7 +403,7 @@ def generar_contrato_cliente(request, proforma_num):
 
         # Calcular 50% de abono
         acuenta = total * 0.5
-        saldo = total
+        saldo = total - acuenta
         
         # Fecha de entrega: 7 días hábiles (aproximadamente 10 días calendario)
         fecha_entrega = date.today() + timedelta(days=10)
@@ -413,8 +413,8 @@ def generar_contrato_cliente(request, proforma_num):
             contrato_num=contrato_num,
             cantidad=len(opcion_ids),
             preciototal=Decimal(str(total)),
-            acuenta=Decimal(str(acuenta)),
-            saldo=Decimal(str(saldo)),
+            acuenta=Decimal("0.00"),  # 🔧 agrégalo explícitamente
+            saldo=Decimal(str(total)),
             fechaEntrega=fecha_entrega,
             detale_extra=detalle_extra,
             proforma=proforma
@@ -430,7 +430,7 @@ def generar_contrato_cliente(request, proforma_num):
             )
 
         # Generar PDF del contrato
-        context = {'contrato': contrato, 'opciones': contrato.opciones_elegidas.all()}
+        context = {'contrato': contrato, 'opciones': contrato.opciones_elegidas.all(), 'abono_sugerido': acuenta }
         pdf_file = render_to_pdf('proforma/pdf_contrato.html', context)
         if pdf_file:
             contrato.pdf.save(f"{contrato.contrato_num}.pdf", ContentFile(pdf_file.read()))

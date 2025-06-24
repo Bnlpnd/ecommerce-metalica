@@ -116,7 +116,10 @@
                                                 </div>
                                                 <div class="text-end">
                                                     <div class="text-success fw-bold">S/. {{ opcion.preciototal|floatformat:2 }}</div>
-                                                    <small class="text-muted">
+                                                    <small class="text-muted d-block">
+                                                        P. Unidad: S/. {{ opcion.precio_real|floatformat:2 }}
+                                                    </small>
+                                                    <small class="text-muted d-block">
                                                         Instalación: S/. {{ opcion.precio_instalacion|floatformat:2 }}
                                                     </small>
                                                 </div>
@@ -182,7 +185,7 @@
                             <div class="col-md-6">
                                 <p><strong>Monto total a pagar:</strong> <span id="total-display" class="text-success fw-bold fs-5">S/. {{ total_estimado|floatformat:2 }}</span></p>
                                 <p><strong>Adelanto requerido (50%):</strong> <span id="adelanto-display" class="text-warning fw-bold fs-5">S/. {{ abono_requerido|floatformat:2 }}</span></p>
-                                <p><strong>Saldo restante:</strong> <span id="saldo-display" class="text-info fw-bold">S/. {{ abono_requerido|floatformat:2 }}</span></p>
+                                
                             </div>
                             <div class="col-md-6">
                                 <p><strong>Fecha de entrega:</strong> {{ fecha_entrega_estimada|date:"d/m/Y" }}</p>
