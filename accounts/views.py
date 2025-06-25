@@ -24,11 +24,11 @@ def login_view(request):
         user_obj = User.objects.filter(username = email).first()
 
         if not user_obj:
-            messages.warning(request, 'Account not found.')
+            messages.warning(request, 'Cuenta no encontrada.')
             return HttpResponseRedirect(request.path_info)
 
         if not user_obj.profile.is_email_verified:
-            messages.warning(request, 'Your account is not verified.')
+            messages.warning(request, 'Tu cuenta no ha sido verificada.')
             return HttpResponseRedirect(request.path_info)
 
         user_obj = authenticate(username = email , password= password)
@@ -36,7 +36,7 @@ def login_view(request):
             auth_login(request , user_obj)
             return redirect('/')
 
-        messages.warning(request, 'Invalid credentials')
+        messages.warning(request, 'Credenciales incorrectas.')
         return HttpResponseRedirect(request.path_info)
 
 
@@ -215,7 +215,8 @@ def dashboard_cliente(request):
     """Dashboard principal para clientes"""
     # Verificar que el usuario sea cliente
     if not hasattr(request.user, 'profile') or request.user.profile.rol != 'cliente':
-        return HttpResponseForbidden("Acceso denegado. Esta sección es solo para clientes.")
+        messages.warning(request, "Acceso denegado. Esta sección es solo para clientes.")
+        return redirect('home')
     
     # Estadísticas básicas para mostrar en el dashboard
     stats = get_cliente_dashboard_stats(request.user)
@@ -225,7 +226,8 @@ def dashboard_cliente(request):
 @require_http_methods(["GET", "POST"])
 def perfil_cliente(request):
     if not hasattr(request.user, 'profile') or request.user.profile.rol != 'cliente':
-        return HttpResponseForbidden("Acceso denegado.")
+        messages.warning(request, "Acceso denegado. Esta sección es solo para clientes.")
+        return redirect('home')
 
     profile = request.user.profile
 
@@ -258,7 +260,8 @@ def perfil_cliente(request):
 def mis_proformas_cliente(request):
     """Vista de proformas para clientes con filtros"""
     if not hasattr(request.user, 'profile') or request.user.profile.rol != 'cliente':
-        return HttpResponseForbidden("Acceso denegado.")
+        messages.warning(request, "Acceso denegado. Esta sección es solo para clientes.")
+        return redirect('home')
     
     # Filtros
     numero_proforma = request.GET.get('numero_proforma', '').strip()
@@ -296,7 +299,8 @@ def mis_proformas_cliente(request):
 def mis_contratos_cliente(request):
     """Vista de contratos para clientes con filtros"""
     if not hasattr(request.user, 'profile') or request.user.profile.rol != 'cliente':
-        return HttpResponseForbidden("Acceso denegado.")
+        messages.warning(request, "Acceso denegado. Esta sección es solo para clientes.")
+        return redirect('home')
     
     # Filtros
     numero_contrato = request.GET.get('numero_contrato', '').strip()
@@ -347,7 +351,8 @@ def mis_contratos_cliente(request):
 def ver_contrato_cliente(request, contrato_num):
     """Vista de solo lectura del contrato para clientes"""
     if not hasattr(request.user, 'profile') or request.user.profile.rol != 'cliente':
-        return HttpResponseForbidden("Acceso denegado.")
+        messages.warning(request, "Acceso denegado. Esta sección es solo para clientes.")
+        return redirect('home')
     
     # Verificar que el contrato pertenezca al cliente
     contrato = get_object_or_404(Contrato, contrato_num=contrato_num, proforma__cliente=request.user)
@@ -367,7 +372,8 @@ def ver_contrato_cliente(request, contrato_num):
 def generar_contrato_cliente(request, proforma_num):
     """Generar contrato desde el dashboard del cliente"""
     if not hasattr(request.user, 'profile') or request.user.profile.rol != 'cliente':
-        return HttpResponseForbidden("Acceso denegado.")
+        messages.warning(request, "Acceso denegado. Esta sección es solo para clientes.")
+        return redirect('home')
     
     # Verificar que la proforma pertenezca al cliente
     proforma = get_object_or_404(Proforma, proforma_num=proforma_num, cliente=request.user)

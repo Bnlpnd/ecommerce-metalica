@@ -1,6 +1,13 @@
 {% extends 'home/base.html' %} {% load static %} {% block content %}
 <div class="container mt-4">
   <h2 class="mb-4">Proforma</h2>
+  {% if error_message %}
+  <div class="alert alert-warning" id="custom-error">
+    {{ error_message }}
+  </div>
+  {% endif %}
+  <div class="alert alert-warning" id="custom-error-js" style="display: none;"></div>
+
 
   {% if request.user.profile %}
   <div class="alert alert-warning d-flex justify-content-between align-items-center flex-wrap">
@@ -228,5 +235,38 @@
       alert("Debe haber al menos una fila.");
     }
   }
+
+  document.querySelector("form").addEventListener("submit", function (e) {
+    const filas = document.querySelectorAll("#cuerpo-proforma tr");
+    let valido = true;
+    let mensajeError = "";
+
+    filas.forEach((fila, index) => {
+      const cantidad = fila.querySelector("input[name='cantidad[]']").value;
+      const producto = fila.querySelector("select[name='producto[]']").value;
+      const modelo = fila.querySelector("select[name='modelo[]']").value;
+      const alto = fila.querySelector("input[name='alto[]']").value;
+      const ancho = fila.querySelector("input[name='ancho[]']").value;
+      const color = fila.querySelector("input[name='color[]']").value;
+      const p1 = fila.querySelector("input[name='pregunta1[]']").value;
+      const p2 = fila.querySelector("input[name='pregunta2[]']").value;
+      const p3 = fila.querySelector("input[name='pregunta3[]']").value;
+
+      if (!cantidad || !producto || !modelo || !alto || !ancho || !color || !p1 || !p2 || !p3) {
+        valido = false;
+        mensajeError = `⚠️ Debes completar todos los campos en la fila ${index + 1}. Incluye también las preguntas del detalle.`;
+
+      }
+    });
+
+    if (!valido) {
+      e.preventDefault(); // Detener el envío
+      const errorDiv = document.getElementById("custom-error-js");
+      errorDiv.textContent = mensajeError;
+      errorDiv.style.display = "block";
+    }
+
+  });
+
 </script>
 {% endblock %}

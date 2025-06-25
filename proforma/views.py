@@ -52,7 +52,8 @@ def ping(request):
 def bandeja_cotizaciones(request, cotizacion_id=None):
     # Verifica si el usuario tiene perfil y si es trabajador
     if not hasattr(request.user, 'profile') or request.user.profile.rol != 'trabajador':
-        return HttpResponseForbidden("Acceso denegado. Esta sección es solo para trabajadores.")
+        messages.warning(request, "Acceso denegado. Esta sección es solo para trabajadores.")
+        return redirect('home')
 
     proformas = Proforma.objects.filter(estado='pendiente').order_by('-fecha')
     
@@ -218,7 +219,8 @@ def dashboard_trabajador(request):
     """Dashboard principal para clientes"""
     # Verificar que el usuario sea cliente
     if not hasattr(request.user, 'profile') or request.user.profile.rol != 'trabajador':
-        return HttpResponseForbidden("Acceso denegado. Esta sección es solo para trabajadores.")
+        messages.warning(request, "Acceso denegado. Esta sección es solo para trabajadores.")
+        return redirect('home')
     
     # Estadísticas básicas para mostrar en el dashboard
     stats = get_trabajador_dashboard_stats(request.user)
@@ -711,7 +713,8 @@ def generar_contratox(request, proforma_num):
 def estado_proformas(request):
     # Verificar que el usuario sea trabajador
     if not hasattr(request.user, 'profile') or request.user.profile.rol != 'trabajador':
-        return HttpResponseForbidden("Acceso denegado. Esta sección es solo para trabajadores.")
+        messages.warning(request, "Acceso denegado. Esta sección es solo para trabajadores.")
+        return redirect('home')
     
     # Obtener parámetros de filtrado
     nombre_cliente = request.GET.get('nombre_cliente', '').strip()
@@ -777,7 +780,8 @@ def anular_contrato_cliente(request, contrato_num):
 def estado_contratos(request):
     # Verificar que el usuario sea trabajador
     if not hasattr(request.user, 'profile') or request.user.profile.rol != 'trabajador':
-        return HttpResponseForbidden("Acceso denegado. Esta sección es solo para trabajadores.")
+        messages.warning(request, "Acceso denegado. Esta sección es solo para trabajadores.")
+        return redirect('home')
     
     # Obtener parámetros de filtrado
     nombre_cliente = request.GET.get('nombre_cliente', '').strip()
@@ -836,7 +840,8 @@ def estado_contratos(request):
 @login_required
 def ver_contrato(request, contrato_num):
     if not hasattr(request.user, 'profile') or request.user.profile.rol != 'trabajador':
-        return HttpResponseForbidden("Acceso denegado. Esta sección es solo para trabajadores.")
+        messages.warning(request, "Acceso denegado. Esta sección es solo para trabajadores.")
+        return redirect('home')
 
     contrato = get_object_or_404(Contrato, contrato_num=contrato_num)
     
