@@ -22,7 +22,6 @@ BASE_DIR = settings.BASE_DIR
 from proforma.models import Contrato,Proforma,ContadorProforma,Product, ProductMaterial, Material
 from .forms import *
 from .models import *
-modelo_arbol = joblib.load(os.path.join(BASE_DIR, 'modelo_arbol.pkl'))
 
 @login_required
 def solicitar_cotizacion(request, product_uid):
@@ -138,10 +137,15 @@ def guardar_proforma(request):
         preguntas3 = request.POST.getlist('pregunta3[]')
 
         total_general = 0
-
+        cotizaciones_guardadas = 0
+        
         for i in range(len(modelos)):
             print("🔍 Valor recibido:", modelos[i])
-
+            
+            # ✅ Validar que todos los campos estén presentes
+            if not (modelos[i] and cantidades[i] and altos[i] and anchos[i] and colores[i] and preguntas1[i] and preguntas2[i] and preguntas3[i]):
+                continue  # salta esta fila si hay algo vacío
+            
             #Product
             try:
                 modelo = ProductMaterial.objects.get(uid=modelos[i])
@@ -152,10 +156,9 @@ def guardar_proforma(request):
             
 
             cantidad = float(cantidades[i]) if cantidades[i] else 1
-            alto = float(altos[i]) if altos[i] else 0
-            ancho = float(anchos[i]) if anchos[i] else 0
-            color = colores[i]
-            instalar = False
+            alto = float(altos[i]) 
+            ancho = float(anchos[i])
+            color = colores[i] 
             p1, p2, p3 = preguntas1[i], preguntas2[i], preguntas3[i]
 
             precio = 0  # reemplazar luego con lógica real
@@ -179,7 +182,13 @@ def guardar_proforma(request):
             )
 
             total_general += precio_total*cantidad
+            cotizaciones_guardadas += 1
 
+        if cotizaciones_guardadas == 0:
+            proforma.delete()
+            messages.warning(request, "Debe completar todos los campos de al menos una fila para enviar la proforma.")
+            return redirect('formulario_proforma')
+        
         proforma.preciototal = total_general
         proforma.slug = slugify(numero)
         proforma.save()
@@ -267,6 +276,8 @@ def ver_proforma(request, proforma_num, without_layout=None):
         **stats
     })
 
+
+modelo_arbol = joblib.load(os.path.join(BASE_DIR, 'modelo_arbol.pkl'))
 @login_required
 def predecir_precio(request):
     if request.method == 'POST':
@@ -594,9 +605,6 @@ def generar_pdf_proforma(request, proforma_num):
             print("⚠️ El cliente no tiene un correo electrónico registrado.")
             messages.warning(request, "Proforma generada, pero el cliente no tiene correo registrado.")
 
-        
-        ######
-        
         print("\n" + "="*60)
         print("🎉 PROCESO DE GENERACIÓN PDF COMPLETADO")
         print(f"📄 Proforma {proforma.proforma_num} marcada como ATENDIDA")

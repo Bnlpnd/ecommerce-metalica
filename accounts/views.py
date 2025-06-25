@@ -370,13 +370,22 @@ def ver_contrato_cliente(request, contrato_num):
 
 @login_required
 def generar_contrato_cliente(request, proforma_num):
-    """Generar contrato desde el dashboard del cliente"""
     if not hasattr(request.user, 'profile') or request.user.profile.rol != 'cliente':
         messages.warning(request, "Acceso denegado. Esta sección es solo para clientes.")
         return redirect('home')
     
     # Verificar que la proforma pertenezca al cliente
     proforma = get_object_or_404(Proforma, proforma_num=proforma_num, cliente=request.user)
+
+    # Verifica si ya tiene contrato generado
+    if hasattr(proforma, 'contrato'):
+        messages.warning(request, "Esta proforma ya tiene un contrato generado.")
+        return redirect('mis_proformas_cliente')
+
+    # Verificar que esté en estado “atendido”
+    if proforma.estado != "atendido":
+        messages.warning(request, "La proforma debe estar en estado 'atendido' para generar un contrato.")
+        return redirect('mis_proformas_cliente')
 
     # Verificar si la proforma tiene menos de 20 días
     if (date.today() - proforma.fecha).days > 20:
