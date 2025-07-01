@@ -28,17 +28,17 @@ id,tipo,producto,material,alto,ancho,precio
 27,Puerta principal para casa,Puerta principal estilo madera ,Material resistente,255.00,100.00,980.00
 28,Puerta principal para casa,Puerta principal estilo madera ,Material resistente,259.00,100.00,980.00
 29,Puerta principal para casa,Puerta principal estilo madera ,Material resistente,258.00,100.00,980.00
-30,Puerta principal para casa,Puerta principal estilo madera ,Material resistente,250.00,95.00,650.00
-31,Puerta principal para casa,Puerta principal estilo madera ,Material resistente,251.00,95.00,650.00
-32,Puerta principal para casa,Puerta principal estilo madera ,Material resistente,255.00,96.00,650.00
-33,Puerta principal para casa,Puerta principal estilo madera ,Material resistente,256.00,96.00,650.00
-34,Puerta principal para casa,Puerta principal estilo madera ,Material resistente,255.00,98.00,650.00
-35,Puerta principal para casa,Puerta principal estilo madera ,Material resistente,254.00,99.00,650.00
-36,Puerta principal para casa,Puerta principal estilo madera ,Material resistente,260.00,99.00,650.00
-37,Puerta principal para casa,Puerta principal estilo madera ,Material resistente,260.00,100.00,650.00
-38,Puerta principal para casa,Puerta principal estilo madera ,Material resistente,255.00,100.00,650.00
-39,Puerta principal para casa,Puerta principal estilo madera ,Material resistente,259.00,100.00,650.00
-40,Puerta principal para casa,Puerta principal estilo madera ,Material resistente,258.00,100.00,650.00
+30,Puerta principal para casa,Puerta principal estilo madera ,Material intermedio,250.00,95.00,650.00
+31,Puerta principal para casa,Puerta principal estilo madera ,Material intermedio,251.00,95.00,650.00
+32,Puerta principal para casa,Puerta principal estilo madera ,Material intermedio,255.00,96.00,650.00
+33,Puerta principal para casa,Puerta principal estilo madera ,Material intermedio,256.00,96.00,650.00
+34,Puerta principal para casa,Puerta principal estilo madera ,Material intermedio,255.00,98.00,650.00
+35,Puerta principal para casa,Puerta principal estilo madera ,Material intermedio,254.00,99.00,650.00
+36,Puerta principal para casa,Puerta principal estilo madera ,Material intermedio,260.00,99.00,650.00
+37,Puerta principal para casa,Puerta principal estilo madera ,Material intermedio,260.00,100.00,650.00
+38,Puerta principal para casa,Puerta principal estilo madera ,Material intermedio,255.00,100.00,650.00
+39,Puerta principal para casa,Puerta principal estilo madera ,Material intermedio,259.00,100.00,650.00
+40,Puerta principal para casa,Puerta principal estilo madera ,Material intermedio,258.00,100.00,650.00
 41,Puerta principal para casa,Puerta con aplicaciones en acero inoxidable,Material resistente,250.00,95.00,"1,200.00"
 42,Puerta principal para casa,Puerta con aplicaciones en acero inoxidable,Material resistente,251.00,95.00,"1,200.00"
 43,Puerta principal para casa,Puerta con aplicaciones en acero inoxidable,Material resistente,255.00,96.00,"1,200.00"
@@ -83,33 +83,33 @@ id,tipo,producto,material,alto,ancho,precio
 82,Puerta principal para casa,Puerta modelo en arco,Material intermedio,255.00,100.00,780.00
 83,Puerta principal para casa,Puerta modelo en arco,Material intermedio,259.00,100.00,790.00
 84,Puerta principal para casa,Puerta modelo en arco,Material intermedio,258.00,100.00,780.00
-85,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,260.00,250.00,"1,760.00"
-86,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,250.00,245.00,"1,653.75"
-87,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,252.00,230.00,"1,570.00"
-88,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,251.00,240.00,"1,626.48"
-89,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,254.00,243.00,"1,670.00"
-90,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,260.00,253.00,"1,776.06"
-91,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,250.00,260.00,"1,760.00"
-92,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,245.00,270.00,"1,786.05"
-93,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,245.00,290.00,"1,918.35"
-94,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,248.00,230.00,"1,540.08"
-95,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,254.00,243.00,"1,543.05"
-96,Puerta enrrollable ,Puerta enrrollable para negocio,Material intermedio,260.00,253.00,"1,644.50"
-97,Puerta enrrollable ,Puerta enrrollable para negocio,Material intermedio,250.00,260.00,"1,625.00"
-98,Puerta enrrollable ,Puerta enrrollable para negocio,Material intermedio,245.00,270.00,"1,653.75"
-99,Puerta enrrollable ,Puerta enrrollable para negocio,Material intermedio,245.00,290.00,"1,776.25"
-100,Puerta enrrollable ,Puerta enrrollable para negocio,Material intermedio,260.00,253.00,"1,644.50"
-101,Puerta enrrollable ,Puerta enrrollable para negocio,Material intermedio,250.00,260.00,"1,625.00"
-102,Puerta enrrollable ,Puerta enrrollable para negocio,Material intermedio,245.00,270.00,"1,653.75"
-103,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,245.00,290.00,"1,705.20"
-104,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,248.00,230.00,"1,368.96"
-105,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,254.00,243.00,"1,481.33"
-106,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,260.00,253.00,"1,578.72"
-107,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,260.00,250.00,"1,560.00"
-108,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,250.00,245.00,"1,470.00"
-109,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,252.00,230.00,"1,391.04"
-110,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,251.00,240.00,"1,445.76"
-111,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,254.00,243.00,"1,481.33"
+85,Puerta enrrollable ,Puerta enrrollable para negocio,Material resistente,260.00,250.00,"1,850.00"
+86,Puerta enrrollable ,Puerta enrrollable para negocio,Material resistente,250.00,245.00,"1,850.00"
+87,Puerta enrrollable ,Puerta enrrollable para negocio,Material resistente,252.00,230.00,"1,850.00"
+88,Puerta enrrollable ,Puerta enrrollable para negocio,Material resistente,251.00,240.00,"1,850.00"
+89,Puerta enrrollable ,Puerta enrrollable para negocio,Material resistente,254.00,243.00,"1,850.00"
+90,Puerta enrrollable ,Puerta enrrollable para negocio,Material resistente,260.00,253.00,"1,850.00"
+91,Puerta enrrollable ,Puerta enrrollable para negocio,Material resistente,250.00,260.00,"1,850.00"
+92,Puerta enrrollable ,Puerta enrrollable para negocio,Material resistente,245.00,270.00,"1,850.00"
+93,Puerta enrrollable ,Puerta enrrollable para negocio,Material resistente,245.00,290.00,"1,920.00"
+94,Puerta enrrollable ,Puerta enrrollable para negocio,Material resistente,248.00,230.00,"1,800.00"
+95,Puerta enrrollable ,Puerta enrrollable para negocio,Material resistente,254.00,243.00,"1,800.00"
+96,Puerta enrrollable ,Puerta enrrollable para negocio,Material intermedio,260.00,253.00,"1,700.00"
+97,Puerta enrrollable ,Puerta enrrollable para negocio,Material intermedio,250.00,260.00,"1,700.00"
+98,Puerta enrrollable ,Puerta enrrollable para negocio,Material intermedio,245.00,270.00,"1,700.00"
+99,Puerta enrrollable ,Puerta enrrollable para negocio,Material intermedio,245.00,290.00,"1,800.00"
+100,Puerta enrrollable ,Puerta enrrollable para negocio,Material intermedio,260.00,253.00,"1,700.00"
+101,Puerta enrrollable ,Puerta enrrollable para negocio,Material intermedio,250.00,260.00,"1,700.00"
+102,Puerta enrrollable ,Puerta enrrollable para negocio,Material intermedio,245.00,270.00,"1,700.00"
+103,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,245.00,290.00,"1,800.00"
+104,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,248.00,230.00,"1,450.00"
+105,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,254.00,243.00,"1,500.00"
+106,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,260.00,253.00,"1,600.00"
+107,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,260.00,250.00,"1,600.00"
+108,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,250.00,245.00,"1,500.00"
+109,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,252.00,230.00,"1,450.00"
+110,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,251.00,240.00,"1,500.00"
+111,Puerta enrrollable ,Puerta enrrollable para negocio,Material simple,254.00,243.00,"1,500.00"
 112,Enrejado para puerta enrrollable de negocio,Puerta enrrollable mas enrejado para negocio de 4 Hojas,Material resistente,300.00,260.00,"1,920.00"
 113,Enrejado para puerta enrrollable de negocio,Puerta enrrollable mas enrejado para negocio de 4 Hojas,Material resistente,302.00,260.00,"1,920.00"
 114,Enrejado para puerta enrrollable de negocio,Puerta enrrollable mas enrejado para negocio de 4 Hojas,Material resistente,298.00,259.00,"1,920.00"

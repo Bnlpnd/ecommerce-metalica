@@ -59,7 +59,11 @@
               <h6 class="text-primary mb-3">
                 <i class="fas fa-edit"></i> Configurar Opciones de Cotización
               </h6>
-              
+              <div id="mensaje-material-vacio" class="alert alert-warning alert-dismissible fade show d-none" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span id="mensaje-texto">Por favor seleccione un tipo de material para poder cotizar.</span>
+                <button type="button" class="btn-close" aria-label="Close" onclick="ocultarAlertaMaterial()"></button>
+              </div>
               <form method="POST" action="{% url 'guardar_opciones_cotizacion' %}" id="form_{{ c.id }}" class="form-guardar-opciones"
               data-cotizacion-id="{{ c.id }}">
                 {% csrf_token %}
@@ -80,6 +84,8 @@
                         value="{{ c.chapa }}"
                         placeholder="Ej. Chapa izquierda, abre hacia afuera">
                 </div>
+
+                
 
                 <div class="row g-3">
                   {% for i in "123" %}
@@ -235,15 +241,15 @@
             <h6 class="text-primary mb-2"><i class="fas fa-question-circle"></i> Información Adicional</h6>
             <div class="row">
               <div class="col-md-4">
-                <small class="text-muted">Pregunta 1:</small><br>
+                <small class="text-muted">Ubicación producto:</small><br>
                 <span>{{ c.pregunta_1 }}</span>
               </div>
               <div class="col-md-4">
-                <small class="text-muted">Pregunta 2:</small><br>
+                <small class="text-muted">Chapa:</small><br>
                 <span>{{ c.pregunta_2 }}</span>
               </div>
               <div class="col-md-4">
-                <small class="text-muted">Pregunta 3:</small><br>
+                <small class="text-muted">Instalación:</small><br>
                 <span>{{ c.pregunta_3 }}</span>
               </div>
             </div>
@@ -399,10 +405,16 @@ function predecirPrecio(cotizacionId, opcionIndex, alto, ancho, productoNombre) 
     const materialSelect = document.getElementById(`material_${cotizacionId}_${opcionIndex}`);
     const materialNombre = materialSelect.value;
     
+
     if (!materialNombre) {
-        alert('Por favor seleccione un tipo de material primero');
+        const mensajeBox = document.getElementById('mensaje-material-vacio');
+        const mensajeTexto = document.getElementById('mensaje-texto');
+        
+        mensajeTexto.textContent = 'Por favor seleccione un tipo de material primero.';
+        mensajeBox.classList.remove('d-none'); // Mostrar
         return;
     }
+
     
     // Mostrar indicador de carga
     const botonPredicir = event.target;
@@ -440,6 +452,13 @@ function predecirPrecio(cotizacionId, opcionIndex, alto, ancho, productoNombre) 
         botonPredicir.innerHTML = textoOriginal;
         botonPredicir.disabled = false;
     });
+}
+
+function ocultarAlertaMaterial() {
+    const alerta = document.getElementById('mensaje-material-vacio');
+    if (alerta) {
+        alerta.classList.add('d-none');
+    }
 }
 
 // Scripts para manejo de formularios
@@ -515,10 +534,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Auto-dismiss alerts after 5 seconds
     setTimeout(function() {
-        document.querySelectorAll('.alert').forEach(function(alert) {
-            const bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
-        });
+      const alerta = document.getElementById('mensaje-material-vacio');
+      if (alerta && !alerta.classList.contains('d-none')) {
+          alerta.classList.add('d-none');
+      }
     }, 5000);
 });
 </script>

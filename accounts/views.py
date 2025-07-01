@@ -428,7 +428,7 @@ def generar_contrato_cliente(request, proforma_num):
             contrato_num=contrato_num,
             cantidad=len(opcion_ids),
             preciototal=Decimal(str(total)),
-            acuenta=Decimal("0.00"),  # 🔧 agrégalo explícitamente
+            acuenta=Decimal("0.00"), 
             saldo=Decimal(str(total)),
             fechaEntrega=fecha_entrega,
             detale_extra=detalle_extra,
