@@ -349,7 +349,6 @@ def mis_contratos_cliente(request):
 
 @login_required
 def ver_contrato_cliente(request, contrato_num):
-    """Vista de solo lectura del contrato para clientes"""
     if not hasattr(request.user, 'profile') or request.user.profile.rol != 'cliente':
         messages.warning(request, "Acceso denegado. Esta sección es solo para clientes.")
         return redirect('home')

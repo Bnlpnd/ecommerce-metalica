@@ -22,6 +22,8 @@ BASE_DIR = settings.BASE_DIR
 from proforma.models import Contrato,Proforma,ContadorProforma,Product, ProductMaterial, Material
 from .forms import *
 from .models import *
+import csv
+from django.utils.dateparse import parse_date
 
 @login_required
 def solicitar_cotizacion(request, product_uid):
@@ -616,106 +618,6 @@ def generar_pdf_proforma(request, proforma_num):
         print("❌ ERROR: No se pudo generar el archivo PDF")
         return HttpResponse("❌ Error generando PDF", status=500)
     
-@login_required
-def generar_contratox(request, proforma_num):
-    print(f"🔍 Entrando a generar_contrato con proforma_num: {proforma_num}")
-    
-    proforma = get_object_or_404(Proforma, proforma_num=proforma_num)
-    print(f"✅ Proforma encontrada: {proforma.proforma_num}")
-
-    # Verificar si YA tiene contrato
-    contrato_existente = Contrato.objects.filter(proforma=proforma).exists()
-    print(f"🧾 ¿Ya tiene contrato? {contrato_existente}")
-    if contrato_existente:
-        messages.warning(request, "Ya existe un contrato generado para esta proforma.")
-        return redirect('mis_contratos_cliente')
-
-    # Verificar si la proforma tiene menos de 20 días
-    dias_pasados = (date.today() - proforma.fecha).days
-    print(f"📅 Días desde creación: {dias_pasados}")
-    if dias_pasados > 20:
-        messages.warning(request, "La proforma ha vencido y no se puede generar un contrato.")
-        return redirect('mis_proformas')
-
-    cotizaciones = proforma.cotizaciones.prefetch_related('opciones').all()
-    opcion_ids = []
-    for cot in cotizaciones:
-        selected = request.POST.get(f'opcion_cotizacion_{cot.id}')
-        if selected:
-            opcion_ids.append(selected)
-    print(f"📦 Cotizaciones encontradas: {cotizaciones.count()}")
-
-    if request.method == 'POST':
-        opcion_ids = request.POST.getlist('opcion_cotizacion')
-        #acuenta = float(request.POST.get('acuenta'))
-        acuenta = 0
-        fecha_entrega = request.POST.get('fechaEntrega')
-        detalle_extra = request.POST.get('detalle_extra', '')
-
-        print(f"📝 Opciones seleccionadas: {opcion_ids}")
-        print(f"💰 A cuenta: {acuenta}")
-        print(f"📆 Fecha entrega: {fecha_entrega}")
-        print(f"🗒️ Detalle extra: {detalle_extra}")
-
-        # Calcular total
-        total = 0
-        for opcion_id in opcion_ids:
-            opcion = OpcionCotizacion.objects.get(id=opcion_id)
-            print(f"➕ Sumando opción {opcion_id} con total {opcion.preciototal}")
-            total += float(opcion.preciototal)
-
-#        saldo = total - acuenta
-        saldo = total
-        abono_sugerido = total * 0.5
-        print(f"💵 Total calculado: {total} | Saldo: {saldo}")
-        
-        contrato_num = f"C{str(uuid.uuid4())[:8].upper()}"
-        print(f"🔢 Generando contrato con número: {contrato_num}")
-
-        contrato = Contrato.objects.create(
-            contrato_num=contrato_num,
-            cantidad=len(opcion_ids),
-            preciototal=Decimal(str(total)),  
-            fechaEntrega=fecha_entrega,
-            detale_extra=detalle_extra,
-            proforma=proforma
-        )
-
-        for opcion_id in opcion_ids:
-            opcion = OpcionCotizacion.objects.get(id=opcion_id)
-            OpcionContrato.objects.create(
-                contrato=contrato,
-                cotizacion=opcion.cotizacion,
-                opcion=opcion
-            )
-            print(f"✅ Relacionando Opcion {opcion.id} con Contrato {contrato.contrato_num}")
-
-        # Generar PDF
-        context = {
-            'contrato': contrato, 
-            'opciones': contrato.opciones_elegidas.all(),      'abono_requerido': abono_sugerido
-            }
-        pdf_file = render_to_pdf('proforma/pdf_contrato.html', context)
-        if pdf_file:
-            contrato.pdf.save(f"{contrato.contrato_num}.pdf", ContentFile(pdf_file.read()))
-            messages.success(request, "Contrato generado correctamente.")
-            print("📄 PDF generado y guardado.")
-        else:
-            messages.warning(request, "Contrato creado pero no se pudo generar el PDF.")
-            print("⚠️ No se pudo generar el PDF.")
-
-        return redirect('mis_proformas')
-
-    total_estimado = sum(op.opciones.first().preciototal for op in cotizaciones if op.opciones.exists())
-    abono_sugerido = total_estimado * 0.5
-    
-    return render(request, 'proforma/seleccionar_opciones_contrato.html', {
-        'proforma': proforma,
-        'cotizaciones': cotizaciones,
-        'total_estimado': total_estimado,
-        'abono_requerido': abono_sugerido,
-        'fecha_entrega_estimada': date.today() + timedelta(days=10)
-    })
 
 @login_required
 def estado_proformas(request):
@@ -958,3 +860,44 @@ def enviar_notificacion_contrato(contrato, cambio_estado_pedido, cambio_estado_d
         
     except Exception as e:
         print(f"❌ Error enviando notificación de contrato: {e}")
+
+
+
+@login_required
+def exportar_cotizaciones_csv(request):
+    if request.method == 'POST':
+        fecha_inicio = parse_date(request.POST.get('fecha_inicio'))
+        fecha_fin = parse_date(request.POST.get('fecha_fin'))
+
+        cotizaciones = Cotizacion.objects.filter(
+            proforma__fecha__range=(fecha_inicio, fecha_fin)
+        ).select_related('proforma', 'producto__product', 'producto__material').prefetch_related('opciones')
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="cotizaciones_exportadas.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow([
+            'Proforma', 'Producto', 'Material',
+            'Alto', 'Ancho', 'Color',
+            'Precio Predicho', 'Precio Real', 'Precio Total',
+            'Título Opción', 'Fecha Opción'
+        ])
+
+        for cot in cotizaciones:
+            for opcion in cot.opciones.all():
+                writer.writerow([
+                    cot.proforma.proforma_num,
+                    cot.producto.product.product_name,
+                    cot.producto.material.material_name,
+                    cot.alto,
+                    cot.ancho,
+                    cot.color,
+                    opcion.precio_prediccion,
+                    opcion.precio_real,
+                    opcion.titulo,
+                    opcion.fecha_creacion.strftime('%Y-%m-%d'),
+                ])
+        return response
+
+    return render(request, 'proforma/exportar_cotizaciones.html')

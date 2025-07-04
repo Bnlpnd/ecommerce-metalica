@@ -50,7 +50,7 @@
             <th>Modelo de puerta</th>
             <th>Imagen</th>
             <th>
-              Medidas
+              Medidas(cm)
               <button
                 class="btn btn-sm btn-outline-secondary py-0 px-1"
                 onclick="mostrarAyuda()"
@@ -66,10 +66,12 @@
         <tbody id="cuerpo-proforma">
           <tr>
             <td>
-              <input type="number" name="cantidad[]" value="1" min="1" class="form-control form-control-sm" />
+              <input type="number" name="cantidad[]" value="1" min="1" max="20" class="form-control form-control-sm" required oninvalid="this.setCustomValidity('Debe ingresar una cantidad válida entre 1 y 20')"
+              oninput="this.setCustomValidity('')"/>
             </td>
             <td>
-              <select name="producto[]" class="form-select form-select-sm productos" onchange="cargarModelos(this)">
+              <select name="producto[]" class="form-select form-select-sm productos" onchange="cargarModelos(this)" required oninvalid="this.setCustomValidity('Debe selecionar un producto')"
+              oninput="this.setCustomValidity('')">
                 <option value="">Seleccione</option>
                 {% for producto in productos %}
                   <option value="{{ producto.uid }}">{{ producto.product_name }}</option>
@@ -85,20 +87,27 @@
               <img src="" class="imagen-modelo" width="70" style="display: none; border-radius: 5px" />
             </td>
             <td>
-              <input type="number" name="alto[]" placeholder="Alto" class="form-control form-control-sm mb-1" maxlength="3" />
-              <input type="number" name="ancho[]" placeholder="Ancho" class="form-control form-control-sm" maxlength="4"/>
+              <input type="number" name="alto[]" placeholder="Alto" class="form-control form-control-sm mb-1" maxlength="3" min="190" max="550" step="1" required oninvalid="this.setCustomValidity('El valor debe estar entre 190 y 550 cm.')"
+              oninput="this.setCustomValidity('')"/> 
+
+              <input type="number" name="ancho[]" placeholder="Ancho" class="form-control form-control-sm mb-1" maxlength="3" min="85" max="350" step="1" required oninvalid="this.setCustomValidity('El valor debe estar entre 85 y 350 cm.')"
+              oninput="this.setCustomValidity('')"/> 
             </td>
             <td>
-              <input type="text" name="color[]" class="form-control form-control-sm" placeholder="Ej. Negro mate" maxlength="30"/>
+              <input type="text" name="color[]" class="form-control form-control-sm" placeholder="Ej. Negro mate" maxlength="30" required oninvalid="this.setCustomValidity('Debe ingresar un color')"
+              oninput="this.setCustomValidity('')"/>
             </td>
             <td class="text-center">
               <button class="btn btn-primary btn-sm" type="button" onclick="abrirModal(this)">Detalle</button>
               <button class="btn btn-danger btn-sm" type="button" onclick="eliminarFila(this)"><i class="fas fa-trash"></i></button>
 
               <!-- CAMPOS OCULTOS para preguntas -->
-              <input type="hidden" name="pregunta1[]" value="" />
-              <input type="hidden" name="pregunta2[]" value="" />
-              <input type="hidden" name="pregunta3[]" value="" />
+              <input type="hidden" name="pregunta1[]" value="" required oninvalid="this.setCustomValidity('Debe ingresar datos')"
+              oninput="this.setCustomValidity('')"/>
+              <input type="hidden" name="pregunta2[]" value="" required oninvalid="this.setCustomValidity('Debe ingresar datos')"
+              oninput="this.setCustomValidity('')"/>
+              <input type="hidden" name="pregunta3[]" value="" required oninvalid="this.setCustomValidity('Debe ingresar datos')"
+              oninput="this.setCustomValidity('')"/>
             </td>
           </tr>
         </tbody>
@@ -136,7 +145,7 @@
   let filaActiva = null;
 
   function mostrarAyuda() {
-    alert("📏 Usa una cinta métrica para medir el alto y ancho del vano donde se instalará la puerta. Mide en centímetros.");
+    alert("📏 Usa una cinta métrica para medir el alto y ancho del vano donde se instalará la puerta. Mide en centímetros. Si tienes algún problema con las medidas contáctanos al número: 979525640");
   }
 
   function cargarModelos(select) {

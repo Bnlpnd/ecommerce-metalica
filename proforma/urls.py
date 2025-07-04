@@ -27,5 +27,6 @@ urlpatterns = [
     path('contratos/anular/<str:contrato_num>/', views.anular_contrato_cliente, name='anular_contrato_cliente'),
     path('mis-proformas/', views.redireccionar_mis_proformas, name='mis_proformas'),
 
+    path('exportar-cotizaciones/', views.exportar_cotizaciones_csv, name='exportar_cotizaciones'),
 
 ]

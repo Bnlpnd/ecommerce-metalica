@@ -1,0 +1,23 @@
+{% extends 'accounts/dashboard_trabajador_base.html' %}
+
+{% block tab %}
+<div class="container mt-4">
+  <h4>Exportar Cotizaciones: Entrenar modelo</h4>
+  <form method="POST" class="card p-4 shadow-sm">
+    {% csrf_token %}
+    <div class="row mb-3">
+      <div class="col">
+        <label>Desde:</label>
+        <input type="date" name="fecha_inicio" class="form-control" required>
+      </div>
+      <div class="col">
+        <label>Hasta:</label>
+        <input type="date" name="fecha_fin" class="form-control" required>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-outline-primary">
+      <i class="fas fa-download"></i> Descargar CSV
+    </button>
+  </form>
+</div>
+{% endblock %} 

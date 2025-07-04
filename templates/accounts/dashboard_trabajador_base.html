@@ -99,6 +99,9 @@
                         <a href="{% url 'estado_contratos' %}" class="list-group-item list-group-item-action {% if tab == 'contratos' %} text-primary {% endif %}">
                             <i class="fas fa-file-contract text-success me-2"></i> Estado Contratos
                         </a>
+                        <a href="{% url 'exportar_cotizaciones' %}" class="list-group-item list-group-item-action {% if tab == 'exportar' %} text-primary {% endif %}">
+                            <i class="fas fa-file-csv text-warning me-2"></i> Exportar Cotizaciones
+                        </a>
                     </div>
                 </div>
             </div>
