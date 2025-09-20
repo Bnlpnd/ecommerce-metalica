@@ -8,10 +8,19 @@
         <h5>Proformas pendientes</h5>
         <div class="list-group">
             {% for p in proformas %}
-            <a href="#" onclick="mostrarProforma('{{ p.proforma_num }}')" class="list-group-item list-group-item-action">
-                <strong>{{ p.proforma_num }}</strong><br>
-                <small>{{ p.cliente.username }}</small><br>
-                <small>{{ p.fecha|date:"d/m/Y" }}</small>
+            <a href="#" onclick="mostrarProforma('{{ p.proforma_num }}')" 
+                class="list-group-item list-group-item-action {% if p.uid == proforma_mas_antigua.uid %}border-success bg-light-success{% endif %}">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <strong>{{ p.proforma_num }}</strong>
+                        {% if p.uid == proforma_mas_antigua.uid %}
+                            <span class="badge bg-success ms-2">Siguiente</span>
+                        {% endif %}
+                        <br>
+                        <small>{{ p.cliente.username }}</small><br>
+                        <small>{{ p.fecha|date:"d/m/Y" }}</small>
+                    </div>
+                </div>
             </a>
 
             {% empty %}
@@ -33,10 +42,90 @@
     window.history.pushState({ proforma: proforma_num }, '', nuevaURL);
 
     fetch(`/proforma/ver/without_layout/${proforma_num}`)
-      .then(response => response.text())
-      .then(html => {
-        document.getElementById("detalle-proforma").innerHTML = html;
+      .then(response => {
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          return response.json();
+        } else {
+          return response.text();
+        }
+      })
+      .then(data => {
+        if (typeof data === 'object' && data.error) {
+          // Mostrar diálogo de advertencia
+          mostrarDialogoAdvertencia(data.message, data.proforma_mas_antigua);
+        } else {
+          // Mostrar el detalle de la proforma
+          document.getElementById("detalle-proforma").innerHTML = data;
+        }
+      })
+      .catch(error => {
+        console.error('Error al cargar proforma:', error);
+        document.getElementById("detalle-proforma").innerHTML = '<p class="text-danger">Error al cargar la proforma.</p>';
       });
+  }
+
+  function mostrarDialogoAdvertencia(mensaje, proformaMasAntigua) {
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.id = 'modalAdvertencia';
+    modal.setAttribute('tabindex', '-1');
+    modal.setAttribute('aria-labelledby', 'modalAdvertenciaLabel');
+    modal.setAttribute('aria-hidden', 'true');
+    
+    modal.innerHTML = `
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-warning">
+            <h5 class="modal-title" id="modalAdvertenciaLabel">
+              <i class="fas fa-exclamation-triangle"></i> Atención Requerida
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-warning" role="alert">
+              <h6 class="alert-heading">Orden de Atención</h6>
+              <p>${mensaje}</p>
+              <hr>
+              <p class="mb-0">
+                <strong>Proforma más antigua pendiente:</strong> ${proformaMasAntigua}
+              </p>
+            </div>
+            <p>Por favor, atienda primero la proforma más antigua antes de continuar con las más recientes.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" onclick="abrirProformaMasAntigua('${proformaMasAntigua}')">
+              <i class="fas fa-arrow-right"></i> Ir a Proforma ${proformaMasAntigua}
+            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Agregar el modal al body
+    document.body.appendChild(modal);
+    
+    // Mostrar el modal
+    const bootstrapModal = new bootstrap.Modal(modal);
+    bootstrapModal.show();
+    
+    // Limpiar el modal cuando se cierre
+    modal.addEventListener('hidden.bs.modal', function() {
+      document.body.removeChild(modal);
+    });
+  }
+
+  function abrirProformaMasAntigua(proformaNum) {
+    // Cerrar el modal actual
+    const modal = document.getElementById('modalAdvertencia');
+    if (modal) {
+      const bootstrapModal = bootstrap.Modal.getInstance(modal);
+      bootstrapModal.hide();
+    }
+    
+    // Abrir la proforma más antigua
+    mostrarProforma(proformaNum);
   }
 
   function toggleOpciones(id) {

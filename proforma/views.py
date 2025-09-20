@@ -242,13 +242,39 @@ def bandeja_trabajador(request, proforma_num=None):
     proformas = Proforma.objects.filter(estado='pendiente').order_by('fecha')
     print("🧾 Proformas cargadas:", proformas)
     
+    # Identificar la proforma pendiente más antigua
+    proforma_mas_antigua = proformas.first() if proformas.exists() else None
+    
     stats = get_trabajador_dashboard_stats(request.user)
 
-    return render(request, 'proforma/bandeja.html', {'proformas': proformas,
-        'proforma_seleccionada': proforma_num, 'tab': 'bandeja',**stats})
+    return render(request, 'proforma/bandeja.html', {
+        'proformas': proformas,
+        'proforma_seleccionada': proforma_num, 
+        'proforma_mas_antigua': proforma_mas_antigua,
+        'tab': 'bandeja',
+        **stats
+    })
 
 def ver_proforma(request, proforma_num, without_layout=None):
     proforma = get_object_or_404(Proforma, proforma_num=proforma_num)
+    
+    # Validar si se puede abrir esta proforma (solo la más antigua pendiente)
+    if proforma.estado == 'pendiente':
+        proforma_mas_antigua = Proforma.objects.filter(estado='pendiente').order_by('fecha').first()
+        if proforma_mas_antigua and proforma.uid != proforma_mas_antigua.uid:
+            # Esta no es la proforma más antigua, mostrar error
+            if without_layout:
+                # Si es una petición AJAX, devolver JSON con error
+                return JsonResponse({
+                    'error': True,
+                    'message': 'Debe atender las proformas más antiguas que están pendientes antes de atender las más recientes.',
+                    'proforma_mas_antigua': proforma_mas_antigua.proforma_num
+                })
+            else:
+                # Si es una petición normal, mostrar mensaje de error
+                messages.error(request, 'Debe atender las proformas más antiguas que están pendientes antes de atender las más recientes.')
+                return redirect('bandeja_trabajador')
+    
     cotizaciones = Cotizacion.objects.filter(proforma=proforma)
     materiales = Material.objects.all()
     
