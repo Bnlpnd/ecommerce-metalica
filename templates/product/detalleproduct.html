@@ -48,13 +48,113 @@
           <a href="{% url 'galeria' %}" class="btn btn-secondary w-50">
             Volver
           </a>
-          <a href="{% url 'proforma' %}" class="btn btn-primary w-50">
-            Proforma
-          </a>
+          <button onclick="añadirAProforma('{{ modelo.product.uid }}', '{{ modelo.uid }}', '{{ modelo.product.product_name }}', '{{ modelo.productmaterial_name }}')" class="btn btn-primary w-50">
+            Añadir a proforma
+          </button>
         </div>
         <!-- <a href="{% url 'galeria' %}" class="btn btn-secondary mt-3">Volver</a> -->
       </div>
     </div>
   </div>
 </div>
+
+<script>
+function añadirAProforma(productoUid, modeloUid, productoNombre, modeloNombre) {
+  // Obtener datos existentes del localStorage
+  const STORAGE_KEY = 'proforma_draft';
+  let datosExistentes = [];
+  
+  try {
+    const datos = localStorage.getItem(STORAGE_KEY);
+    if (datos) {
+      datosExistentes = JSON.parse(datos);
+    }
+  } catch (error) {
+    console.error('Error cargando datos existentes:', error);
+  }
+  
+  // Crear nuevo item
+  const nuevoItem = {
+    cantidad: '1',
+    producto: productoUid,
+    modelo: modeloUid,
+    alto: '',
+    ancho: '',
+    color: '',
+    pregunta1: '',
+    pregunta2: '',
+    pregunta3: ''
+  };
+  
+  // Agregar el nuevo item
+  datosExistentes.push(nuevoItem);
+  
+  // Guardar en localStorage
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(datosExistentes));
+  
+  // Mostrar mensaje de confirmación
+  const mensaje = `✅ "${modeloNombre}" agregado a la proforma\n\nTotal de productos en proforma: ${datosExistentes.length}`;
+  
+  // Crear modal de confirmación
+  const modal = document.createElement('div');
+  modal.className = 'modal fade show';
+  modal.style.display = 'block';
+  modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+  modal.innerHTML = `
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title">
+            <i class="fas fa-check-circle"></i> Producto Agregado
+          </h5>
+        </div>
+        <div class="modal-body">
+          <p><strong>Producto:</strong> ${productoNombre}</p>
+          <p><strong>Modelo:</strong> ${modeloNombre}</p>
+          <p><strong>Total en proforma:</strong> ${datosExistentes.length} producto(s)</p>
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> El producto se ha guardado en tu proforma. Puedes continuar agregando más productos o ir a completar la proforma.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="seguirNavegando()">Seguir navegando</button>
+          <a href="{% url 'proforma' %}" class="btn btn-primary">
+            <i class="fas fa-shopping-cart"></i> Ir a Proforma
+          </a>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Agregar al body
+  document.body.appendChild(modal);
+  
+  // Función para cerrar modal
+  window.cerrarModal = function() {
+    document.body.removeChild(modal);
+  };
+  
+  // Función para seguir navegando (ir a página anterior)
+  window.seguirNavegando = function() {
+    cerrarModal();
+    // Usar history.back() para ir a la página anterior
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      // Si no hay historial, ir a la galería
+      window.location.href = "{% url 'galeria' %}";
+    }
+  };
+  
+  // Cerrar modal al hacer clic fuera
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) {
+      cerrarModal();
+    }
+  });
+  
+  console.log('✅ Producto agregado a proforma:', nuevoItem);
+}
+</script>
+
 {% endblock %}
