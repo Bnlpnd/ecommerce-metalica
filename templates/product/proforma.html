@@ -1,6 +1,9 @@
 {% extends 'home/base.html' %} {% load static %} {% block content %}
 <div class="container mt-4">
-  <h2 class="mb-4">Proforma</h2>
+  <h2 class="mb-4">
+    Proforma 
+    <span id="contador-productos" class="badge bg-primary ms-2" style="display: none;">0 productos</span>
+  </h2>
   {% if error_message %}
   <div class="alert alert-warning" id="custom-error">
     {{ error_message }}
@@ -143,6 +146,208 @@
 <!-- SCRIPTS -->
 <script>
   let filaActiva = null;
+  const STORAGE_KEY = 'proforma_draft';
+
+  // Funciones para manejar localStorage
+  function guardarEnLocalStorage() {
+    const filas = document.querySelectorAll('#cuerpo-proforma tr');
+    const datos = [];
+    
+    filas.forEach((fila, index) => {
+      const cantidad = fila.querySelector('input[name="cantidad[]"]').value;
+      const producto = fila.querySelector('select[name="producto[]"]').value;
+      const modelo = fila.querySelector('select[name="modelo[]"]').value;
+      const alto = fila.querySelector('input[name="alto[]"]').value;
+      const ancho = fila.querySelector('input[name="ancho[]"]').value;
+      const color = fila.querySelector('input[name="color[]"]').value;
+      const pregunta1 = fila.querySelector('input[name="pregunta1[]"]').value;
+      const pregunta2 = fila.querySelector('input[name="pregunta2[]"]').value;
+      const pregunta3 = fila.querySelector('input[name="pregunta3[]"]').value;
+      
+      // Solo guardar si hay al menos un campo con datos
+      if (cantidad || producto || modelo || alto || ancho || color || pregunta1 || pregunta2 || pregunta3) {
+        datos.push({
+          cantidad: cantidad || '',
+          producto: producto || '',
+          modelo: modelo || '',
+          alto: alto || '',
+          ancho: ancho || '',
+          color: color || '',
+          pregunta1: pregunta1 || '',
+          pregunta2: pregunta2 || '',
+          pregunta3: pregunta3 || ''
+        });
+      }
+    });
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(datos));
+    console.log('💾 Proforma guardada en localStorage:', datos);
+    actualizarContadorProductos();
+  }
+
+  function cargarDesdeLocalStorage() {
+    const datos = localStorage.getItem(STORAGE_KEY);
+    if (datos) {
+      try {
+        const filasDatos = JSON.parse(datos);
+        console.log('📂 Cargando proforma desde localStorage:', filasDatos);
+        
+        // Limpiar filas existentes excepto la primera
+        const tabla = document.getElementById('cuerpo-proforma');
+        while (tabla.rows.length > 1) {
+          tabla.deleteRow(1);
+        }
+        
+        // Cargar cada fila de datos
+        filasDatos.forEach((filaDatos, index) => {
+          if (index === 0) {
+            // Usar la primera fila existente
+            llenarFila(tabla.rows[0], filaDatos);
+          } else {
+            // Crear nuevas filas sin guardar en localStorage (para evitar recursión)
+            añadirFilaSinGuardar();
+            llenarFila(tabla.rows[tabla.rows.length - 1], filaDatos);
+          }
+        });
+      } catch (error) {
+        console.error('❌ Error cargando desde localStorage:', error);
+      }
+    }
+  }
+
+  function llenarFila(fila, datos) {
+    console.log('🔧 Llenando fila con datos:', datos);
+    
+    fila.querySelector('input[name="cantidad[]"]').value = datos.cantidad || '';
+    fila.querySelector('input[name="alto[]"]').value = datos.alto || '';
+    fila.querySelector('input[name="ancho[]"]').value = datos.ancho || '';
+    fila.querySelector('input[name="color[]"]').value = datos.color || '';
+    fila.querySelector('input[name="pregunta1[]"]').value = datos.pregunta1 || '';
+    fila.querySelector('input[name="pregunta2[]"]').value = datos.pregunta2 || '';
+    fila.querySelector('input[name="pregunta3[]"]').value = datos.pregunta3 || '';
+    
+    // Manejar producto y modelo
+    const productoSelect = fila.querySelector('select[name="producto[]"]');
+    const modeloSelect = fila.querySelector('select[name="modelo[]"]');
+    
+    if (datos.producto) {
+      productoSelect.value = datos.producto;
+      console.log('📦 Producto seleccionado:', datos.producto);
+      
+      // Cargar modelos para este producto
+      cargarModelos(productoSelect);
+      
+      // Esperar a que se carguen los modelos y seleccionar el modelo
+      setTimeout(() => {
+        if (datos.modelo) {
+          modeloSelect.value = datos.modelo;
+          console.log('🏷️ Modelo seleccionado:', datos.modelo);
+          actualizarImagen(modeloSelect);
+        }
+      }, 800); // Aumentar tiempo de espera
+    }
+  }
+
+  function limpiarLocalStorage() {
+    localStorage.removeItem(STORAGE_KEY);
+    console.log('🗑️ localStorage limpiado');
+    actualizarContadorProductos();
+  }
+
+  function actualizarContadorProductos() {
+    const contador = document.getElementById('contador-productos');
+    const datos = localStorage.getItem(STORAGE_KEY);
+    
+    if (datos) {
+      try {
+        const productos = JSON.parse(datos);
+        if (productos.length > 0) {
+          contador.textContent = `${productos.length} producto${productos.length > 1 ? 's' : ''}`;
+          contador.style.display = 'inline-block';
+        } else {
+          contador.style.display = 'none';
+        }
+      } catch (error) {
+        contador.style.display = 'none';
+      }
+    } else {
+      contador.style.display = 'none';
+    }
+  }
+
+  // Autocompletar campos si se pasaron parámetros desde detalle del producto
+  document.addEventListener('DOMContentLoaded', function() {
+    // Variables del servidor
+    const productoUid = '{{ producto_seleccionado.uid|default:"" }}';
+    const modeloUid = '{{ modelo_seleccionado.uid|default:"" }}';
+    const productoNombre = '{{ producto_seleccionado.product_name|default:"" }}';
+    const modeloNombre = '{{ modelo_seleccionado.productmaterial_name|default:"" }}';
+    
+    console.log('🔍 Datos recibidos del servidor:');
+    console.log('  - Producto UID:', productoUid);
+    console.log('  - Modelo UID:', modeloUid);
+    console.log('  - Producto Nombre:', productoNombre);
+    console.log('  - Modelo Nombre:', modeloNombre);
+    
+    // Solo proceder si tenemos ambos parámetros
+    if (productoUid && modeloUid) {
+      console.log('✅ Iniciando autocompletado...');
+      
+      // Obtener la primera fila
+      const primeraFila = document.querySelector('#cuerpo-proforma tr');
+      if (primeraFila) {
+        const productoSelect = primeraFila.querySelector('select[name="producto[]"]');
+        const modeloSelect = primeraFila.querySelector('select[name="modelo[]"]');
+        
+        if (productoSelect && modeloSelect) {
+          // Seleccionar el producto
+          productoSelect.value = productoUid;
+          console.log('📦 Producto seleccionado en select:', productoSelect.value);
+          
+          // Cargar los modelos para ese producto
+          cargarModelos(productoSelect);
+          
+          // Esperar un poco para que se carguen los modelos y luego seleccionar el modelo
+          setTimeout(() => {
+            modeloSelect.value = modeloUid;
+            console.log('🏷️ Modelo seleccionado en select:', modeloSelect.value);
+            actualizarImagen(modeloSelect);
+            // Guardar después del autocompletado
+            guardarEnLocalStorage();
+          }, 500);
+        } else {
+          console.log('❌ No se encontraron los selects necesarios');
+        }
+      } else {
+        console.log('❌ No se encontró la primera fila');
+      }
+    } else {
+      console.log('ℹ️ No hay parámetros suficientes para autocompletar');
+      // Cargar desde localStorage si no hay parámetros
+      cargarDesdeLocalStorage();
+    }
+    
+    // Configurar event listeners para guardar automáticamente
+    configurarEventListeners();
+    
+    // Actualizar contador de productos al cargar la página
+    actualizarContadorProductos();
+  });
+
+  function configurarEventListeners() {
+    // Guardar en localStorage cuando cambien los campos
+    document.addEventListener('input', function(e) {
+      if (e.target.matches('input[name="cantidad[]"], input[name="alto[]"], input[name="ancho[]"], input[name="color[]"], input[name="pregunta1[]"], input[name="pregunta2[]"], input[name="pregunta3[]"]')) {
+        guardarEnLocalStorage();
+      }
+    });
+    
+    document.addEventListener('change', function(e) {
+      if (e.target.matches('select[name="producto[]"], select[name="modelo[]"]')) {
+        guardarEnLocalStorage();
+      }
+    });
+  }
 
   function mostrarAyuda() {
     alert("📏 Usa una cinta métrica para medir el alto y ancho del vano donde se instalará la puerta. Mide en centímetros. Si tienes algún problema con las medidas contáctanos al número: 979525640");
@@ -205,6 +410,30 @@
     document.getElementById("p2").value = filaActiva.querySelector("input[name='pregunta2[]']").value;
     document.getElementById("p3").value = filaActiva.querySelector("input[name='pregunta3[]']").value;
     document.getElementById("modalDetalle").style.display = "block";
+    
+    // Agregar event listeners para guardar automáticamente mientras se escribe
+    const p1 = document.getElementById("p1");
+    const p2 = document.getElementById("p2");
+    const p3 = document.getElementById("p3");
+    
+    const guardarPreguntas = () => {
+      if (filaActiva) {
+        filaActiva.querySelector("input[name='pregunta1[]']").value = p1.value;
+        filaActiva.querySelector("input[name='pregunta2[]']").value = p2.value;
+        filaActiva.querySelector("input[name='pregunta3[]']").value = p3.value;
+        guardarEnLocalStorage();
+      }
+    };
+    
+    // Remover listeners anteriores si existen
+    p1.removeEventListener('input', guardarPreguntas);
+    p2.removeEventListener('input', guardarPreguntas);
+    p3.removeEventListener('input', guardarPreguntas);
+    
+    // Agregar nuevos listeners
+    p1.addEventListener('input', guardarPreguntas);
+    p2.addEventListener('input', guardarPreguntas);
+    p3.addEventListener('input', guardarPreguntas);
   }
 
   function cerrarModal() {
@@ -212,26 +441,56 @@
       filaActiva.querySelector("input[name='pregunta1[]']").value = document.getElementById("p1").value;
       filaActiva.querySelector("input[name='pregunta2[]']").value = document.getElementById("p2").value;
       filaActiva.querySelector("input[name='pregunta3[]']").value = document.getElementById("p3").value;
+      
+      // Guardar en localStorage después de actualizar las preguntas
+      guardarEnLocalStorage();
     }
     document.getElementById("modalDetalle").style.display = "none";
   }
 
   function añadirFila() {
+    añadirFilaSinGuardar();
+    // Guardar en localStorage después de agregar fila
+    guardarEnLocalStorage();
+  }
+
+  function añadirFilaSinGuardar() {
     let tabla = document.getElementById("cuerpo-proforma");
     let fila = tabla.rows[0].cloneNode(true);
+    
+    // Resetear todos los inputs excepto cantidad
     fila.querySelectorAll("input").forEach((el) => {
-      if (el.type === "checkbox") el.checked = false;
-      else el.value = "";
+      if (el.type === "checkbox") {
+        el.checked = false;
+      } else if (el.name === "cantidad[]") {
+        // Mantener cantidad en 1 para nuevas filas
+        el.value = "1";
+      } else {
+        // Limpiar todos los demás campos
+        el.value = "";
+      }
     });
 
-    // 🔥 Resetear selects sin vaciar las opciones
+    // Resetear selects
     fila.querySelectorAll("select").forEach((el) => {
-      el.selectedIndex = 0;
+      if (el.name === "producto[]") {
+        // Para el select de producto, solo resetear índice
+        el.selectedIndex = 0;
+      } else if (el.name === "modelo[]") {
+        // Para el select de modelo, limpiar completamente las opciones
+        el.innerHTML = "<option value=''>--</option>";
+      }
     });
 
-
+    // Limpiar imagen
     fila.querySelector(".imagen-modelo").style.display = "none";
     fila.querySelector(".imagen-modelo").src = "";
+    
+    // Limpiar campos ocultos de preguntas
+    fila.querySelectorAll("input[name='pregunta1[]'], input[name='pregunta2[]'], input[name='pregunta3[]']").forEach((el) => {
+      el.value = "";
+    });
+    
     tabla.appendChild(fila);
   }
 
@@ -240,6 +499,8 @@
     let tabla = document.getElementById("cuerpo-proforma");
     if (tabla.rows.length > 1) {
       row.remove();
+      // Guardar en localStorage después de eliminar fila
+      guardarEnLocalStorage();
     } else {
       alert("Debe haber al menos una fila.");
     }
@@ -273,6 +534,9 @@
       const errorDiv = document.getElementById("custom-error-js");
       errorDiv.textContent = mensajeError;
       errorDiv.style.display = "block";
+    } else {
+      // Si el formulario es válido, limpiar localStorage antes de enviar
+      limpiarLocalStorage();
     }
 
   });

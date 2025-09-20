@@ -40,9 +40,44 @@ def detalle_producto(request, uid):
 @login_required
 def proforma_view(request):
     productos = Product.objects.all()
-    return render(request, 'product/proforma.html', {
-        'productos': productos
-    })
+    
+    # Obtener parámetros de la URL
+    producto_uid = request.GET.get('producto')
+    modelo_uid = request.GET.get('modelo')
+    
+    print(f"🔍 Parámetros recibidos - Producto: {producto_uid}, Modelo: {modelo_uid}")
+    
+    # Variables para autocompletar
+    producto_seleccionado = None
+    modelo_seleccionado = None
+    
+    # Si se pasó un producto, obtenerlo
+    if producto_uid:
+        try:
+            producto_seleccionado = Product.objects.get(uid=producto_uid)
+            print(f"✅ Producto encontrado: {producto_seleccionado.product_name}")
+        except Product.DoesNotExist:
+            print(f"❌ Producto no encontrado con UID: {producto_uid}")
+            pass
+    
+    # Si se pasó un modelo, obtenerlo
+    if modelo_uid:
+        try:
+            modelo_seleccionado = ProductMaterial.objects.get(uid=modelo_uid)
+            print(f"✅ Modelo encontrado: {modelo_seleccionado.productmaterial_name}")
+        except ProductMaterial.DoesNotExist:
+            print(f"❌ Modelo no encontrado con UID: {modelo_uid}")
+            pass
+    
+    context = {
+        'productos': productos,
+        'producto_seleccionado': producto_seleccionado,
+        'modelo_seleccionado': modelo_seleccionado
+    }
+    
+    print(f"📤 Contexto enviado - Producto: {producto_seleccionado}, Modelo: {modelo_seleccionado}")
+    
+    return render(request, 'product/proforma.html', context)
 
 def obtener_modelos_por_tipo(request):
     product_id = request.GET.get('product_id')
