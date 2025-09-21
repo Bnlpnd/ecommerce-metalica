@@ -37,15 +37,18 @@
               <input type="number" name="cantidad[]" value="1" min="1" class="form-control form-control-sm" />
             </td>
             <td>
-              <select name="producto[]" class="form-select form-select-sm productos" onchange="cargarModelos(this)">
+              <select name="producto[]" class="form-select form-select-sm productos" onchange="cargarModelos()">
                 <option value="">Seleccione</option>
                 {% for producto in productos %}
-                  <option value="{{ producto.uid }}">{{ producto.product_name }}</option>
+                  <option value="{{ producto.uid }}" 
+                    {% if selected_product and producto.uid == selected_product %}selected{% endif %}>
+                    {{ producto.product_name }}
+                  </option>
                 {% endfor %}
               </select>
             </td>
             <td>
-              <select name="modelo[]" class="form-select form-select-sm modelo-puerta" onchange="actualizarImagen(this)">
+              <select name="modelo[]" class="form-select form-select-sm modelo-puerta" onchange="actualizarImagen()">
                 <option value="">--</option>
               </select>
             </td>
@@ -107,7 +110,15 @@
     alert("📏 Usa una cinta métrica para medir el alto y ancho del vano donde se instalará la puerta. Mide en centímetros.");
   }
 
-  function cargarModelos(select) {
+  const selectedProduct = "{{ selected_product|default:'' }}";
+  const selectedModel = "{{ selected_model.uid|default:'' }}";
+
+  if(selectedProduct){
+    cargarModelos();
+  }
+
+  function cargarModelos() {
+    const select = document.querySelector('select[name="producto[]"]');
     let productoId = select.value;
     if (!productoId) return;
 
@@ -133,9 +144,13 @@
           opt.value = modelo.id;
           opt.textContent = modelo.nombre;
           opt.dataset.imagen = modelo.imagen_url;
+          opt.selected = modelo.id === selectedModel;
           modeloSelect.appendChild(opt);
 
-          if (index === 0 && modelo.imagen_url) {
+          if(selectedModel === modelo.id){
+            imagen.src = modelo.imagen_url;
+            imagen.style.display = "block";
+          }else if (index === 0 && modelo.imagen_url) {
             imagen.src = modelo.imagen_url;
             imagen.style.display = "block";
           }
@@ -143,7 +158,8 @@
       });
   }
 
-  function actualizarImagen(select) {
+  function actualizarImagen() {
+    const select = document.querySelector('select[name="modelo[]"]');
     let row = select.closest("tr");
     let imagen = row.querySelector(".imagen-modelo");
     let selected = select.selectedOptions[0];

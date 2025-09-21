@@ -39,9 +39,20 @@ def detalle_producto(request, uid):
     
 @login_required
 def proforma_view(request):
+    model_uid = request.GET.get("model")
+
+    selected_model = None
+    selected_product = None
+    
+    if model_uid:
+        selected_model = ProductMaterial.objects.get(uid=model_uid)
+        selected_product = selected_model.product_id
+    
+    
     productos = Product.objects.all()
+
     return render(request, 'product/proforma.html', {
-        'productos': productos
+        'productos': productos, 'selected_model': selected_model, 'selected_product': selected_product
     })
 
 def obtener_modelos_por_tipo(request):
